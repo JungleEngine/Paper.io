@@ -1,5 +1,6 @@
-var KEY_PRESSED = 'right';
-var COLORS = ['empty', '#edeff4', '#990000', '#ff6666']; // White, Border, Player1, Player1_Tail, Player2, Player2_Tail, ...
+// White, Border, Player1, Player1_Tail, Player1_Shadow, Player2, Player2_Tail, ...
+var COLORS = ['empty', '#edeff4', '#0041a1', '#076bff', '#002c6e'];
+var KEY_PRESSED;
 var grid = [];
 var aspect_ratio;
 var view_blocks_number = 40;
@@ -53,6 +54,8 @@ function setup() {
     number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
     player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
+
+    KEY_PRESSED = 'right';
 
     createCanvas(windowWidth, windowHeight);
 

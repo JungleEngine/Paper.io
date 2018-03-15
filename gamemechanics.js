@@ -109,12 +109,20 @@ function drawGrid() {
         }
     }
 
-    // Player color
-    fill(color(COLORS[player.ID]));
+    // Draw player shadow
+    fill(color(COLORS[player.ID + 2]));
     let [x, y] = localize(player.position.x, player.position.y);
     x /= block_size;
     y /= block_size;
+    rect(x * block_size, y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
+
+    // Draw player 
+    fill(color(COLORS[player.ID]));
+    [x, y] = localize(player.position.x, player.position.y);
+    x /= block_size;
+    y /= block_size;
     rect(x * block_size, y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
+
 }
 
 
