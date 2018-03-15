@@ -1,5 +1,5 @@
-var KEY_PRESSED = false;
-var COLORS = ['empty', '#edeff4', '#990000', '#ff6666']; // Border, Player1, Player1_Tail, Player2, Player2_Tail, ...
+var KEY_PRESSED = 'right';
+var COLORS = ['empty', '#edeff4', '#990000', '#ff6666']; // White, Border, Player1, Player1_Tail, Player2, Player2_Tail, ...
 var grid = [];
 var aspect_ratio;
 var view_blocks_number = 40;
@@ -8,7 +8,7 @@ var block_height;
 var number_of_blocks_height;
 var number_of_blocks_width;
 var player;
-var speed = 3;
+var speed;
 var block_size;
 const canvas_length = 200;
 const grid_start = 50;
@@ -40,8 +40,6 @@ function initGrid() {
 
 function setup() {
 
-    player = new Player(new Dir(0, 0), new Position(2500, 2500), 2);
-
     aspect_ratio = windowWidth / windowHeight;
 
     // block_size = Math.round(view_blocks_number * (Math.max(windowWidth, windowHeight) / 1000));
@@ -49,13 +47,17 @@ function setup() {
     // number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
     block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
+    block_size = (Math.round(block_size / 10) * 10);
+    speed = block_size / 10;
     number_of_blocks_height = Math.ceil(windowHeight / block_size);
     number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
-    console.log(number_of_blocks_width, number_of_blocks_height);
+    player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
+
     createCanvas(windowWidth, windowHeight);
 
     initGrid();
+
 }
 
 function draw() {
