@@ -3,6 +3,7 @@ class Dir {
         this.x = x;
         this.y = y;
     }
+
     equal(f) {
         if (this.x != f.x || this.y != f.y)
             return false;
@@ -20,7 +21,6 @@ class Position {
 
 
 class Player {
-
     constructor(dir, position, id) {
         this.dir = dir;
         this.last_dir = new Dir(dir.x, dir.y);

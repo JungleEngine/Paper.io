@@ -1,3 +1,15 @@
+function localize(x, y) {
+    let x_distance = player.position.x - x;
+    let y_distance = player.position.y - y;
+    return [(windowWidth / 2) - x_distance, (windowHeight / 2) - y_distance];
+}
+
+function globalize(x, y) {
+    let x_distance = (windowWidth / 2) - x;
+    let y_distance = (windowHeight / 2) - y;
+    return [player.position.x - x_distance, player.position.y - y_distance];
+}
+
 function handleMovement() {
     if (keyIsDown(RIGHT_ARROW)) {
         player.dir.x = 1;
@@ -26,21 +38,28 @@ function handleMovement() {
 
 function drawGrid() {
 
-    for (i = 0; i <= number_of_blocks_width; ++i) {
-        for (j = 0; j <= number_of_blocks_height; ++j) {
-            if (grid[i][j] == 2) {
-                noStroke();
+    noStroke();
+
+    let x_start = Math.round((player.position.x - (windowWidth / 2)) / block_size);
+    let y_start = Math.round((player.position.y - (windowHeight / 2)) / block_size);
+
+    noStroke();
+
+    for (i = x_start - 1; i <= x_start + number_of_blocks_width; ++i) {
+        for (j = y_start - 1; j <= y_start + number_of_blocks_height; ++j) {
+            if (grid[i][j] != 0) {
                 fill(color(COLORS[grid[i][j]]));
-                rect(i * block_size, j * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
+                let [i_local, j_local] = localize(i * block_size, j * block_size);
+                rect(i_local, j_local, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
             }
         }
     }
 
     // Player color
     fill(color(COLORS[player.ID]));
-
-    let x = player.position.x / block_size;
-    let y = player.position.y / block_size;
+    let [x, y] = localize(player.position.x, player.position.y);
+    x /= block_size;
+    y /= block_size;
     rect(x * block_size, y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
 }
 
@@ -76,6 +95,7 @@ function updateGrid() {
 
     // Tail color
     grid[x][y] = player.ID + 1;
+
 }
 
 
