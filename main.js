@@ -12,7 +12,7 @@ var speed = 3;
 var block_size;
 const canvas_length = 150;
 //const grid_length = 100;
-const border_width_cells = 2;
+const border_width_cells = 0.5;
 
 function initGrid() {
     for (i = 0; i < canvas_length; ++i) {
