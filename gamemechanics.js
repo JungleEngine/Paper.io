@@ -1,16 +1,25 @@
-function localize(x, y) {
-    let x_distance = player.position.x - x;
-    let y_distance = player.position.y - y;
-    return [(windowWidth / 2) - x_distance, (windowHeight / 2) - y_distance];
+
+// Convert world coordinates to local screen pixels coordinates.
+function worldToScreenCoordinates(   player_global_pixel_position_x
+                                    ,player_global_pixel_position_y) 
+{
+    // All players to this player distance.
+    let another_player_x_distance = player.position.x - player_global_pixel_position_x;
+    let another_player_y_distance = player.position.y - player_global_pixel_position_y;
+
+    // Get screen pixel coordintes from 0,0.
+    return [(windowWidth / 2) - another_player_x_distance, (windowHeight / 2) - another_player_y_distance];
 }
 
-function globalize(x, y) {
+function globalize() {
     let x_distance = (windowWidth / 2) - x;
     let y_distance = (windowHeight / 2) - y;
     return [player.position.x - x_distance, player.position.y - y_distance];
 }
 
-function handleMovement() {
+function handleMovement()
+{
+
     if (keyIsDown(RIGHT_ARROW) && KEY_PRESSED != 'left') {
         KEY_PRESSED = 'right';
     }
@@ -50,118 +59,139 @@ function handleMovement() {
         }
     }
 
-    // Update player position
+    // Update player position.
     player.position.x += player.dir.x * speed;
     player.position.y += player.dir.y * speed;
 
+    // Update other players positions.
+    for( i = 0; i < players_in_room_count; i++)
+    {
+        players[i].position.x += player.dir.x * speed;
+        players[i].position.y += player.dir.y * speed;
+
+    }
 
     // -------------------- Checking for lose ------------------------------
 
     let x = 0;
     let y = 0;
 
-    // Player moving down 
+    // Player moving down.
     if (player.dir.equal(new Dir(0, 1))) {
         x = Math.round(player.position.x / block_size);
         y = Math.ceil(player.position.y / block_size);
     }
 
-    // Player moving up
+    // Player moving up.
     if (player.dir.equal(new Dir(0, -1))) {
         x = Math.round(player.position.x / block_size);
         y = Math.floor(player.position.y / block_size);
     }
 
-    // Player moving left 
+    // Player moving left.
     if (player.dir.equal(new Dir(1, 0))) {
         x = Math.ceil(player.position.x / block_size);
         y = Math.round(player.position.y / block_size);
     }
 
-    // Player moving right
+    // Player moving right.
     if (player.dir.equal(new Dir(-1, 0))) {
         x = Math.floor(player.position.x / block_size);
         y = Math.round(player.position.y / block_size);
     }
 
-    // Hit your tail or border = lose
+    // Hit your tail or border = lose.
     if (grid[x][y] == player.ID + 1 || grid[x][y] == 1)
         window.alert('Game over!');
 }
 
 
-function drawGrid() {
+function drawGrid() 
+{
 
     noStroke();
 
-    let x_local_start = Math.round((player.position.x - (windowWidth / 2)) / block_size);
-    let y_local_start = Math.round((player.position.y - (windowHeight / 2)) / block_size);
+    let x_window_start = Math.round((player.position.x - (windowWidth / 2)) / block_size);
+    let y_window_start = Math.round((player.position.y - (windowHeight / 2)) / block_size);
 
     noStroke();
 
-    for (i = x_local_start - 1; i <= x_local_start + number_of_blocks_width; ++i) {
-        for (j = y_local_start - 1; j <= y_local_start + number_of_blocks_height; ++j) {
+    for (i = x_window_start - 1; i <= x_window_start + number_of_blocks_width; ++i) {
+        for (j = y_window_start - 1; j <= y_window_start + number_of_blocks_height; ++j) {
             if (grid[i][j] != 0) {
+
+                // Set color for filling.
                 fill(color(COLORS[grid[i][j]]));
-                let [i_local, j_local] = localize(i * block_size, j * block_size);
-                rect(i_local, j_local, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
+
+                // Convert index in grid to global pixel location.
+                player_global_pixel_position_x = i * block_size;
+                player_global_pixel_position_y = j * block_size;
+
+                // Get player screen pixel location.
+                let [player_local_pixel_position_x
+                    ,player_local_pixel_position_y] = worldToScreenCoordinates( player_global_pixel_position_x
+                                                                               ,player_global_pixel_position_y);
+
+                rect(player_local_pixel_position_x, player_local_pixel_position_y, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
             }
         }
     }
 
-    // Draw player shadow
+    // Draw player shadow.
     fill(color(COLORS[player.ID + 2]));
-    let [x, y] = localize(player.position.x, player.position.y);
-    x /= block_size;
-    y /= block_size;
-    rect(x * block_size, y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
 
-    // Draw player 
+    let [player_local_pixel_position_x
+        ,player_local_pixel_position_y] = worldToScreenCoordinates(  player.position.x
+                                                                    ,player.position.y);
+    player_local_pixel_position_x /= block_size;
+    player_local_pixel_position_y /= block_size;
+
+    rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
+
+    // Draw player. 
     fill(color(COLORS[player.ID]));
-    [x, y] = localize(player.position.x, player.position.y);
-    x /= block_size;
-    y /= block_size;
-    rect(x * block_size, y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
 
+    rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
 }
 
 
-function updateGrid() {
+function updateGrid() 
+{
 
     let x = 0;
     let y = 0;
 
-    // Player moving down 
+    // Player moving down. 
     if (player.dir.equal(new Dir(0, 1))) {
         x = Math.round(player.position.x / block_size);
         y = Math.floor(player.position.y / block_size);
     }
 
-    // Player moving up
+    // Player moving up.
     if (player.dir.equal(new Dir(0, -1))) {
         x = Math.round(player.position.x / block_size);
         y = Math.ceil(player.position.y / block_size);
     }
 
-    // Player moving left 
+    // Player moving left. 
     if (player.dir.equal(new Dir(1, 0))) {
         x = Math.floor(player.position.x / block_size);
         y = Math.round(player.position.y / block_size);
     }
 
-    // Player moving right
+    // Player moving right.
     if (player.dir.equal(new Dir(-1, 0))) {
         x = Math.ceil(player.position.x / block_size);
         y = Math.round(player.position.y / block_size);
     }
 
-    // Tail color
+    // Tail color.
     grid[x][y] = player.ID + 1;
-
 }
 
 
-function fixDir() {
+function fixDir() 
+{
 
     if (!player.dir.equal(player.last_dir)) {
         player.position.x = Math.round(player.position.x / block_size) * block_size;
@@ -170,7 +200,9 @@ function fixDir() {
 }
 
 
-function finalize() {
+function finalize() 
+{
+    
     player.last_dir.x = player.dir.x;
     player.last_dir.y = player.dir.y;
 }

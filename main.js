@@ -17,58 +17,74 @@ const grid_length = 100;
 const grid_end = grid_start + grid_length;
 const border_to_block_ratio = 0.5;
 
-function initGrid() {
-    for (i = 0; i < canvas_length; ++i) {
+// TODO: get number of players in room.
+var players_in_room_count = 0;
+
+//players in room
+var players = [];
+
+function initGrid() 
+{
+    // Initialize the grid with zeros.
+    for (i = 0; i < canvas_length; ++i) 
+    {
         grid[i] = [];
-        for (j = 0; j < canvas_length; ++j) {
+        
+        for (j = 0; j < canvas_length; ++j)
+        {
+        
             grid[i][j] = 0;
         }
     }
 
-    // Draw border in grid 
-    let start = grid_start - 1;
-    let end = grid_end + 1;
+    // Draw game borders in grid.
+    let border_start = grid_start - 1;
+    let border_end = grid_end + 1;
 
-    for (i = start; i <= end; ++i)
-        grid[i][start] = 1;
-    for (i = start; i <= end; ++i)
-        grid[i][end] = 1;
-    for (i = start; i <= end; ++i)
-        grid[start][i] = 1;
-    for (i = start; i <= end; ++i)
-        grid[end][i] = 1;
+    for (i = border_start; i <= border_end; ++i)
+        grid[i][border_start] = 1;
+
+    for (i = border_start; i <= border_end; ++i)
+        grid[i][border_end] = 1;
+
+    for (i = border_start; i <= border_end; ++i)
+        grid[border_start][i] = 1;
+
+    for (i = border_start; i <= border_end; ++i)
+        grid[border_end][i] = 1;
 }
 
-function setup() {
+// TODO: function to be called by SocketIO to initialize players array.
+function setup()
+{
 
     aspect_ratio = windowWidth / windowHeight;
 
-    // block_size = Math.round(view_blocks_number * (Math.max(windowWidth, windowHeight) / 1000));
-    // number_of_blocks_height = Math.ceil(windowHeight / block_size);
-    // number_of_blocks_width = Math.ceil(windowWidth / block_size);
-
     block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
     block_size = (Math.round(block_size / 10) * 10);
+    
     speed = block_size / 10;
+    
     number_of_blocks_height = Math.ceil(windowHeight / block_size);
     number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
+    // Initial this player position.
     player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
 
+    // Set initial key pressed.
     KEY_PRESSED = 'right';
 
     createCanvas(windowWidth, windowHeight);
 
     initGrid();
-
 }
 
 function draw() {
 
-    // Clear screen
+    // Clear screen.
     background(255);
 
-    // Change players positions;
+    // Change players positions.
     handleMovement();
 
     fixDir();
