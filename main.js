@@ -11,6 +11,7 @@ var number_of_blocks_width;
 var player;
 var speed;
 var block_size;
+var socket;
 const canvas_length = 200;
 const grid_start = 50;
 const grid_length = 100;
@@ -55,45 +56,34 @@ function initGrid() {
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        var socket = io('http://localhost:8080');
+        socket = io('http://localhost:8080');
         //try to send an action and wait for connected respnse 
         socket.emit("client_action");
 
         //if connected is recieved from the server then create another button to join a room
-        socket.on('connected', function(data) {
+        socket.on('connect', function(data) {
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
 
-            //TODO:make this a seperate function
+            //TODO:make this a separate function
 
+            //create button to start game and join room
             btn = document.createElement("button");
             btn.innerHTML = "Start!";
             btn.id = "button2";
             btn.name = "but";
             btn.width = 200;
             btn.height = 200;
+            document.body.appendChild(btn);
+
             btn.onclick = function() {
+                //remove own button
                 btn.parentNode.removeChild(btn);
                 socket.emit("join_room", "Room1");
                 startGame = true;
 
-
-                let d = new Date();
-                t1 = d.getTime();
-                //socket.emit("client_action", t1);
-                console.log(socket);
-
-
-                console.log("test");
-
-
-                socket.on('action', function(data) {
-                    let d = new Date();
-                    console.log(d.getTime() - t1);
-                    console.log(data);
-                });
-
-                aspect_ratio = windowWidth / windowHeight;
+                //TODO:make this a separate function
+                //aspect_ratio = windowWidth / windowHeight;
 
                 block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
                 block_size = (Math.round(block_size / 10) * 10);
@@ -113,7 +103,7 @@ function setup() {
 
                 initGrid();
             }
-            document.body.appendChild(btn);
+
 
         });
     }
@@ -122,6 +112,8 @@ function setup() {
 function draw() {
 
     if (startGame) { // Clear screen.
+
+
         background(255);
 
         // Change players positions.

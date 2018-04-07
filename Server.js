@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 var io = require('socket.io', { rememberTransport: false, transports: ['WebSocket'] }).listen(8080);
 const room_capacity = 3;
@@ -11,24 +11,31 @@ io.on('connection', (socket) => {
     console.log("3li connected ", socket.id);
     socket.on('join_room', (data) => {
 
-        let rooms = io.sockets.adapter.rooms;
+        //let rooms = io.sockets.adapter.rooms;
         console.log(io.sockets.adapter.rooms[data]);
-        //console.log(io.rooms.adapter);
-        let key = Object.keys(socket.rooms)[0]; //key of initial room
+
+        //let key = Object.keys(socket.rooms)[0]; //key of initial room
         console.log("user:", socket.id, "Joined a room!");
         //socket.leave(socket.rooms[key]);
         socket.join(data);
-
     });
 
     socket.on('client_action', (data) => {
-        let keys = Object.keys(socket.rooms);
+        //let keys = Object.keys(socket.rooms);
         let d = new Date();
         console.log(d.getTime() - data);
-        io.to(socket.rooms[keys[0]]).emit('action', data);
-        io.to(socket.rooms[keys[0]]).emit('connected', "you're connected!");
+        //this is used to transmit to all the connected users in the room
+        //io.to(socket.rooms[keys[0]]).emit('action', data);
+        //this is to emit to the user who triggered the action
+        socket.emit('action',data);
+        //io.to(socket.rooms[keys[0]]).emit('connected', "you're connected!");
+        socket.emit('connected', "you're connected!");
     });
 
+    socket.on('disconnect',(data)=>{
+        console.log("disconnected !");
+        console.log(data);
+    });
 
 });
 /*

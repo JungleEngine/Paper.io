@@ -101,8 +101,11 @@ function handleMovement()
     }
 
     // Hit your tail or border = lose.
-    if (grid[x][y] == player.ID + 1 || grid[x][y] == 1)
+    if (grid[x][y] == player.ID + 1 || grid[x][y] == 1) {
         window.alert('Game over!');
+        socket.disconnect();
+        location.reload();
+    }
 }
 
 
