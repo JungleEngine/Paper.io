@@ -16,23 +16,20 @@ const grid_start = 50;
 const grid_length = 100;
 const grid_end = grid_start + grid_length;
 const border_to_block_ratio = 0.5;
-
+var startGame = false;
 // TODO: get number of players in room.
 var players_in_room_count = 0;
 
 //players in room
 var players = [];
 
-function initGrid() 
-{
+function initGrid() {
     // Initialize the grid with zeros.
-    for (i = 0; i < canvas_length; ++i) 
-    {
+    for (i = 0; i < canvas_length; ++i) {
         grid[i] = [];
-        
-        for (j = 0; j < canvas_length; ++j)
-        {
-        
+
+        for (j = 0; j < canvas_length; ++j) {
+
             grid[i][j] = 0;
         }
     }
@@ -55,43 +52,87 @@ function initGrid()
 }
 
 // TODO: function to be called by SocketIO to initialize players array.
-function setup()
-{
+function setup() {
+    //click button1 to connect
+    document.getElementById("button1").onclick = function() {
+        var socket = io('http://localhost:8080');
+        //try to send an action and wait for connected respnse 
+        socket.emit("client_action");
 
-    aspect_ratio = windowWidth / windowHeight;
+        //if connected is recieved from the server then create another button to join a room
+        socket.on('connected', function(data) {
+            //delete the previous button
+            document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
 
-    block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
-    block_size = (Math.round(block_size / 10) * 10);
-    
-    speed = block_size / 10;
-    
-    number_of_blocks_height = Math.ceil(windowHeight / block_size);
-    number_of_blocks_width = Math.ceil(windowWidth / block_size);
+            //TODO:make this a seperate function
 
-    // Initial this player position.
-    player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
+            btn = document.createElement("button");
+            btn.innerHTML = "Start!";
+            btn.id = "button2";
+            btn.name = "but";
+            btn.width = 200;
+            btn.height = 200;
+            btn.onclick = function() {
+                btn.parentNode.removeChild(btn);
+                socket.emit("join_room", "Room1");
+                startGame = true;
 
-    // Set initial key pressed.
-    KEY_PRESSED = 'right';
 
-    createCanvas(windowWidth, windowHeight);
+                let d = new Date();
+                t1 = d.getTime();
+                //socket.emit("client_action", t1);
+                console.log(socket);
 
-    initGrid();
+
+                console.log("test");
+
+
+                socket.on('action', function(data) {
+                    let d = new Date();
+                    console.log(d.getTime() - t1);
+                    console.log(data);
+                });
+
+                aspect_ratio = windowWidth / windowHeight;
+
+                block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
+                block_size = (Math.round(block_size / 10) * 10);
+
+                speed = block_size / 10;
+
+                number_of_blocks_height = Math.ceil(windowHeight / block_size);
+                number_of_blocks_width = Math.ceil(windowWidth / block_size);
+
+                // Initial this player position.
+                player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
+
+                // Set initial key pressed.
+                KEY_PRESSED = 'right';
+
+                createCanvas(windowWidth, windowHeight);
+
+                initGrid();
+            }
+            document.body.appendChild(btn);
+
+        });
+    }
 }
 
 function draw() {
 
-    // Clear screen.
-    background(255);
+    if (startGame) { // Clear screen.
+        background(255);
 
-    // Change players positions.
-    handleMovement();
+        // Change players positions.
+        handleMovement();
 
-    fixDir();
+        fixDir();
 
-    updateGrid();
+        updateGrid();
 
-    drawGrid();
+        drawGrid();
 
-    finalize();
+        finalize();
+    }
 }
