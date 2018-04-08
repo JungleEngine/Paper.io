@@ -12,6 +12,7 @@ var player;
 var speed;
 var block_size;
 var socket;
+var ValidAction = true;
 const canvas_length = 200;
 const grid_start = 50;
 const grid_length = 100;
@@ -57,10 +58,10 @@ function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
         socket = io('http://localhost:8080');
-        //try to send an action and wait for connected respnse 
+        //try to send an action and wait for connected response
         socket.emit("client_action");
 
-        //if connected is recieved from the server then create another button to join a room
+        //if connected is received from the server then create another button to join a room
         socket.on('connect', function(data) {
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
@@ -82,26 +83,8 @@ function setup() {
                 socket.emit("join_room", "Room1");
                 startGame = true;
 
-                //TODO:make this a separate function
-                //aspect_ratio = windowWidth / windowHeight;
 
-                block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
-                block_size = (Math.round(block_size / 10) * 10);
-
-                speed = block_size / 10;
-
-                number_of_blocks_height = Math.ceil(windowHeight / block_size);
-                number_of_blocks_width = Math.ceil(windowWidth / block_size);
-
-                // Initial this player position.
-                player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
-
-                // Set initial key pressed.
-                KEY_PRESSED = 'right';
-
-                createCanvas(windowWidth, windowHeight);
-
-                initGrid();
+                initializeLocal();
             }
 
 
@@ -109,6 +92,28 @@ function setup() {
     }
 }
 
+//initializes local game
+function initializeLocal() {
+    //aspect_ratio = windowWidth / windowHeight;
+
+    block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
+    block_size = (Math.round(block_size / 10) * 10);
+
+    speed = block_size / 10;
+
+    number_of_blocks_height = Math.ceil(windowHeight / block_size);
+    number_of_blocks_width = Math.ceil(windowWidth / block_size);
+
+    // Initial this player position.
+    player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
+
+    // Set initial key pressed.
+    KEY_PRESSED = 'right';
+
+    createCanvas(windowWidth, windowHeight);
+
+    initGrid();
+}
 function draw() {
 
     if (startGame) { // Clear screen.
@@ -126,5 +131,6 @@ function draw() {
         drawGrid();
 
         finalize();
+        //console.log(getFrameRate());
     }
 }

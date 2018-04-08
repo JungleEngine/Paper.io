@@ -9,12 +9,22 @@ io.on('connection', (socket) => {
     //console.log(socket.rooms);
 
     console.log("3li connected ", socket.id);
+
+    //TODO: create process to handle each room individually
     socket.on('join_room', (data) => {
 
-        //let rooms = io.sockets.adapter.rooms;
-        console.log(io.sockets.adapter.rooms[data]);
+        console.log(io.nsps['/'].adapter.rooms[data]);
 
-        //let key = Object.keys(socket.rooms)[0]; //key of initial room
+        //TODO:call this function with a new grid for the new room
+        //TODO:check if the room already existed don't call this function!
+        if (!io.nsps['/'].adapter.rooms[data])
+            initGrid();
+
+        //let rooms = io.sockets.adapter.rooms;
+        //console.log(io.sockets.adapter.rooms[data]);
+
+        let key = Object.keys(socket.rooms)[0]; //key of initial room
+        console.log(socket.rooms);
         console.log("user:", socket.id, "Joined a room!");
         //socket.leave(socket.rooms[key]);
         socket.join(data);
@@ -22,8 +32,7 @@ io.on('connection', (socket) => {
 
     socket.on('client_action', (data) => {
         //let keys = Object.keys(socket.rooms);
-        let d = new Date();
-        console.log(d.getTime() - data);
+
         //this is used to transmit to all the connected users in the room
         //io.to(socket.rooms[keys[0]]).emit('action', data);
         //this is to emit to the user who triggered the action
@@ -36,8 +45,57 @@ io.on('connection', (socket) => {
         console.log("disconnected !");
         console.log(data);
     });
+    socket.on('validate', (data) => {
+        console.log(data);
+        //TODO:if action is valid send it to the everyone and send
+    });
 
 });
+
+
+const canvas_length = 200;
+const grid_start = 50;
+const grid_length = 100;
+const grid_end = grid_start + grid_length;
+
+//TODO:create a grid for each room
+var grid = [];
+function initGrid() {
+    // Initialize the grid with zeros.
+    for (let i = 0; i < canvas_length; ++i) {
+        grid[i] = [];
+
+        for (let j = 0; j < canvas_length; ++j) {
+
+            grid[i][j] = 0;
+        }
+    }
+
+    // Draw game borders in grid.
+    let border_start = grid_start - 1;
+    let border_end = grid_end + 1;
+
+    for (let i = border_start; i <= border_end; ++i)
+        grid[i][border_start] = 1;
+
+    for (let i = border_start; i <= border_end; ++i)
+        grid[i][border_end] = 1;
+
+    for (let i = border_start; i <= border_end; ++i)
+        grid[border_start][i] = 1;
+
+    for (let i = border_start; i <= border_end; ++i)
+        grid[border_end][i] = 1;
+
+    //Simulate();
+}
+
+//TODO:make this function general for each room
+function Simulate() {
+    while (true) {
+
+    }
+}
 /*
 io.on('connection', (socket) => {
             console.log(socket.adapter.rooms[socket.id].sockets);

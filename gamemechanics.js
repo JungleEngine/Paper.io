@@ -1,8 +1,6 @@
-
 // Convert world coordinates to local screen pixels coordinates.
-function worldToScreenCoordinates(   player_global_pixel_position_x
-                                    ,player_global_pixel_position_y) 
-{
+function worldToScreenCoordinates(player_global_pixel_position_x
+    , player_global_pixel_position_y) {
     // All players to this player distance.
     let another_player_x_distance = player.position.x - player_global_pixel_position_x;
     let another_player_y_distance = player.position.y - player_global_pixel_position_y;
@@ -17,27 +15,45 @@ function globalize() {
     return [player.position.x - x_distance, player.position.y - y_distance];
 }
 
-function handleMovement()
-{
 
-    if (keyIsDown(RIGHT_ARROW) && KEY_PRESSED != 'left') {
+function validateKeyPress() {
+    let x = null;
+    let y = null;
+    if (keyIsDown(RIGHT_ARROW) && KEY_PRESSED != 'left' && KEY_PRESSED != 'right') {
         KEY_PRESSED = 'right';
+        x = 1;
+        y = 0;
     }
 
-    if (keyIsDown(LEFT_ARROW) && KEY_PRESSED != 'right') {
-        KEY_PRESSED = 'left';;
+    if (keyIsDown(LEFT_ARROW) && KEY_PRESSED != 'right' && KEY_PRESSED != 'left') {
+        KEY_PRESSED = 'left';
+        x = -1;
+        y = 0;
     }
 
-    if (keyIsDown(UP_ARROW) && KEY_PRESSED != 'down') {
+    if (keyIsDown(UP_ARROW) && KEY_PRESSED != 'down' && KEY_PRESSED != 'up') {
         KEY_PRESSED = 'up';
+        x = 0;
+        y = -1;
     }
 
-    if (keyIsDown(DOWN_ARROW) && KEY_PRESSED != 'up') {
+    if (keyIsDown(DOWN_ARROW) && KEY_PRESSED != 'up' && KEY_PRESSED != 'down') {
         KEY_PRESSED = 'down';
+        x = 0;
+        y = 1;
     }
+    if (x != null && y != null) {
+        socket.emit('validate', [x, y]);
+    }
+}
+function handleMovement() {
 
+    //assign KEY_PRESSED the right key
+    validateKeyPress();
+
+    // If the action is valid
     // Change direction when reaching the end of a cell
-    if (player.position.x % block_size < speed && player.position.y % block_size < speed) {
+    if (ValidAction && player.position.x % block_size < speed && player.position.y % block_size < speed) {
         if (KEY_PRESSED == 'right') {
             player.dir.x = 1;
             player.dir.y = 0;
@@ -64,14 +80,12 @@ function handleMovement()
     player.position.y += player.dir.y * speed;
 
     // Update other players positions.
-    for( i = 0; i < players_in_room_count; i++)
-    {
+    for (i = 0; i < players_in_room_count; i++) {
         players[i].position.x += player.dir.x * speed;
         players[i].position.y += player.dir.y * speed;
-
     }
 
-    // -------------------- Checking for lose ------------------------------
+    // -------------------- Checking for loss ------------------------------
 
     let x = 0;
     let y = 0;
@@ -109,8 +123,7 @@ function handleMovement()
 }
 
 
-function drawGrid() 
-{
+function drawGrid() {
 
     noStroke();
 
@@ -132,8 +145,8 @@ function drawGrid()
 
                 // Get player screen pixel location.
                 let [player_local_pixel_position_x
-                    ,player_local_pixel_position_y] = worldToScreenCoordinates( player_global_pixel_position_x
-                                                                               ,player_global_pixel_position_y);
+                    , player_local_pixel_position_y] = worldToScreenCoordinates(player_global_pixel_position_x
+                    , player_global_pixel_position_y);
 
                 rect(player_local_pixel_position_x, player_local_pixel_position_y, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
             }
@@ -144,8 +157,8 @@ function drawGrid()
     fill(color(COLORS[player.ID + 2]));
 
     let [player_local_pixel_position_x
-        ,player_local_pixel_position_y] = worldToScreenCoordinates(  player.position.x
-                                                                    ,player.position.y);
+        , player_local_pixel_position_y] = worldToScreenCoordinates(player.position.x
+        , player.position.y);
     player_local_pixel_position_x /= block_size;
     player_local_pixel_position_y /= block_size;
 
@@ -158,8 +171,7 @@ function drawGrid()
 }
 
 
-function updateGrid() 
-{
+function updateGrid() {
 
     let x = 0;
     let y = 0;
@@ -193,8 +205,7 @@ function updateGrid()
 }
 
 
-function fixDir() 
-{
+function fixDir() {
 
     if (!player.dir.equal(player.last_dir)) {
         player.position.x = Math.round(player.position.x / block_size) * block_size;
@@ -203,9 +214,8 @@ function fixDir()
 }
 
 
-function finalize() 
-{
-    
+function finalize() {
+
     player.last_dir.x = player.dir.x;
     player.last_dir.y = player.dir.y;
 }
