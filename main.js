@@ -116,6 +116,9 @@ function initializeLocal() {
 }
 function draw() {
 
+    // Make speed adapts to change in frame rate
+    speed  =  block_size / 200 * (1000/frameRate())  
+
     if (startGame) { // Clear screen.
 
 

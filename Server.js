@@ -91,7 +91,7 @@ function initGrid() {
 }
 
 //TODO:make this function general for each room
-function Simulate() {
+function simulate() {
     while (true) {
 
     }
