@@ -15,20 +15,19 @@ io.on('connection', (socket) => {
         if (!io.nsps['/'].adapter.rooms[data])
             initGrid();
 
-
         console.log(socket.rooms);
-        
+
         // Join room.
         socket.join(data);
 
         // Get client room
         let room = io.nsps['/'].adapter.rooms[data];
-        console.log("user:", socket.id, "Joined a room!");
-        console.log(" room capacity : ",room.length)
-        
-        console.log(" rooms ",room);
+        console.log("User ", socket.id, " joined a room!");
+        console.log("Room capacity: ", room.length)
+
+        console.log("Rooms: ", room);
         //socket.leave(socket.rooms[key]);
-        
+
     });
 
     socket.on('client_action', (data) => {
@@ -37,13 +36,13 @@ io.on('connection', (socket) => {
         //this is used to transmit to all the connected users in the room
         //io.to(socket.rooms[keys[0]]).emit('action', data);
         //this is to emit to the user who triggered the action
-        socket.emit('action',data);
+        socket.emit('action', data);
         //io.to(socket.rooms[keys[0]]).emit('connected', "you're connected!");
         socket.emit('connected', "you're connected!");
     });
 
-    socket.on('disconnect',(data)=>{
-        console.log("disconnected !");
+    socket.on('disconnect', (data) => {
+        console.log("Disconnected!");
         console.log(data);
     });
     socket.on('validate', (data) => {
@@ -61,6 +60,7 @@ const grid_end = grid_start + grid_length;
 
 //TODO:create a grid for each room
 var grid = [];
+
 function initGrid() {
     // Initialize the grid with zeros.
     for (let i = 0; i < canvas_length; ++i) {
