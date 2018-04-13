@@ -17,7 +17,7 @@ io.on('connection', (socket) => {
     socket.on('join_room', (data) => {
 
 
-        console.log(io.nsps['/'].adapter.rooms[data]);
+        //console.log(io.nsps['/'].adapter.rooms[data]);
 
         // Check if room  is empty, else get current room grid and send it .
         let grid_to_send;
@@ -32,8 +32,6 @@ io.on('connection', (socket) => {
         // Set initial parameters  for new connected client.
         new_player_initial_parameters = getInitialParametersForNewPlayer(data);
         new_player_initial_parameters["grid"] = rooms[data].grid;
-
-        console.log(socket.rooms);
         
         // Join room.
         socket.join(data);
@@ -41,16 +39,16 @@ io.on('connection', (socket) => {
         // Leave his own room.
         socket.leave(socket.id);
 
-
+        console.log(socket.rooms)
         // Send initial parameters to connected Client
         socket.emit("initialize_game",new_player_initial_parameters);
 
-        // Get client room
+        // Get client rooms
         let room = io.nsps['/'].adapter.rooms[data];
         //console.log("user:", socket.id, "Joined a room!");
         //console.log(" room capacity : ",room.length)
         
-        console.log(" rooms ",io.nsps['/'].adapter.rooms);
+        //console.log(" rooms ",io.nsps['/'].adapter.rooms);
         //socket.leave(socket.rooms[key]);
     });
 
@@ -69,8 +67,10 @@ io.on('connection', (socket) => {
         console.log("Player disconnected ",io.nsps['/'].adapter.rooms );
         
     });
-    socket.on('validate', (data) => {
-        console.log(data);
+    socket.on('getClientAction', (data) => {
+        //console.log(data);
+        console.log(Object.keys(socket.rooms)[0]);
+
         //TODO:if action is valid send it to the everyone and send
     });
 
@@ -141,7 +141,7 @@ function getInitialParametersForNewPlayer(room_name){
     // Set initial 5 cells for player
     for(let i = data["pos_x"]-1; i <= data["pos_x"] + 1; i++) 
     for(let j = data["pos_y"]-1; j <= data["pos_y"] + 1; j++)
-        rooms[room_name].grid[i][j] = data["player_color_index"] 
+        rooms[room_name].grid[i][j] = data["player_color_index"]+2
 
   
     return data;

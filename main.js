@@ -1,7 +1,7 @@
 // White, Border, Player1, Player1_Tail, Player1_Shadow, Player2, Player2_Tail, ...
 var COLORS = [ 'empty', '#edeff4'
-             , '#0041a1', '#076bff', '#002c6e'
-             , '#660000', '#ff3333', '#ff8080' ];
+             , '#0041a1', '#076bff', '#000066', '#002c6e'
+             , '#660000', '#ff3333', '#660000', '#ff8080' ];
 
 var KEY_PRESSED;
 var grid = [];
@@ -94,9 +94,10 @@ function draw() {
     // Make speed adapts to change in frame rate
     speed  =  block_size / 200 * (1000/frameRate())  
 
-    if (startGame) { // Clear screen.
+    if (startGame) 
+    { 
 
-
+        // Clear screen.
         background(255);
 
         // Change players positions.
@@ -109,6 +110,7 @@ function draw() {
         drawGrid();
 
         finalize();
-        //console.log(getFrameRate());
-    }
+       
+   }
+
 }

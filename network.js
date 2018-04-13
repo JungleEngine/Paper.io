@@ -8,7 +8,7 @@ function initGame(data){
     // Initial this player position.
     player = new Player(new Dir(1, 0), new Position(block_size * data["pos_x"], block_size * data["pos_y"]), data["player_color_index"]);
 
-    player2 = new Player(new Dir(1, 0), new Position(block_size * (data["pos_x"]+5), block_size * (data["pos_y"]+5))    , data["player_color_index"]+3);
+    player2 = new Player(new Dir(1, 0), new Position(block_size * (data["pos_x"]-10), block_size * (data["pos_y"]+5))    , data["player_color_index"]+4);
 
     // Set current client to players[0].
     players[player.ID] = player;

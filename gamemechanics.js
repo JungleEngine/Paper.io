@@ -16,7 +16,8 @@ function globalize() {
 }
 
 
-function validateKeyPress() {
+function validateKeyPress() 
+{
 
     let x = null;
     let y = null;
@@ -71,7 +72,11 @@ function validateKeyPress() {
 
 }
 
-function handleMovement() {
+function handleMovement() 
+{
+
+    // Players to be removed.
+    players_to_remove = [];
 
     // Validate player action.
     validateKeyPress();
@@ -117,11 +122,6 @@ function handleMovement() {
 
         }
 
-    // Update players[i] position.
-    //players[i].position.x += players[i].dir.x * speed;
-    //players[i].position.y += players[i].dir.y * speed;
-
-    // Update other players[i]s positions.
       //  console.log("player # " + i + " position " + players[i].position.x)
         players[i].position.x += players[i].dir.x * speed;
         players[i].position.y += players[i].dir.y * speed;
@@ -169,19 +169,64 @@ function handleMovement() {
     }
 
     // Hit your tail or border or = lose.
-    if (grid[x][y] != players[i].ID && grid[x][y] != 0 )
+    if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
     {
-    
 
-       // window.alert('Game over!');
-       // socket.disconnect();
-       // location.reload();
+        window.alert('Game over!');
+        socket.disconnect();
+        location.reload();
     
     }
 
+    // Check killing another client ( block ).
+    else if ( ( grid[x][y] - 2 ) % 4 == 0) 
+    {
+       //  To remove player from grid later, head collision.
+       players_to_remove.push(grid[x][y])   
+
     }
+
+    // TO remove player from grid later, tail collision.
+    else if ( ( grid[x][y] - 3 ) % 4 == 0) 
+    {
+       //  To remove player from grid later.
+       players_to_remove.push(grid[x][y] - 1)   
+
+    }
+
+    }
+
+    // Remove dead players from grid.
+    removeDeadPlayers(players_to_remove);
 }
 
+function removeDeadPlayers(dead_players)
+{
+
+    // Remove dead players from players array.
+    for( let i = 0; i < dead_players.length; i++)
+    {
+        
+        delete players[dead_players[i]];
+
+    }
+
+    //console.log(dead_players.length);
+    
+    for( let i = grid_start; i < grid_end; i++)
+        for( let j = grid_start; j < grid_end; j++)
+        {
+            // If current cell is of a dead player then clear it.
+            if(    dead_players.indexOf(grid[i][j]   ) != -1
+                || dead_players.indexOf(grid[i][j] - 1 ) != -1
+                || dead_players.indexOf(grid[i][j] - 2  ) != -1 )
+            {   
+                
+                grid[i][j] = 0;
+            
+            }
+        }
+}
 
 function drawGrid() {
 
