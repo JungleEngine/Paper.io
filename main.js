@@ -1,5 +1,8 @@
 // White, Border, Player1, Player1_Tail, Player1_Shadow, Player2, Player2_Tail, ...
-var COLORS = ['empty', '#edeff4', '#0041a1', '#076bff', '#002c6e'];
+var COLORS = [ 'empty', '#edeff4'
+             , '#0041a1', '#076bff', '#002c6e'
+             , '#660000', '#ff3333', '#ff8080' ];
+
 var KEY_PRESSED;
 var grid = [];
 var aspect_ratio;
@@ -20,12 +23,12 @@ const grid_length = 100;
 const grid_end = grid_start + grid_length;
 const border_to_block_ratio = 0.5;
 var startGame = false;
-// TODO: get number of players in room.
-var players_in_room_count = 0;
+
+const curr_client_indx = 0
 
 var game_started = false;
 //players in room
-var players = [];
+var players = {};
 
 // TODO: function to be called by SocketIO to initialize players array.
 function setup() {
