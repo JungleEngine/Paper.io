@@ -12,6 +12,7 @@ var player;
 var speed;
 var block_size;
 var socket;
+var currentTime = 0;
 var ValidAction = true;
 const canvas_length = 200;
 const grid_start = 50;
@@ -22,47 +23,25 @@ var startGame = false;
 // TODO: get number of players in room.
 var players_in_room_count = 0;
 
+var game_started = false;
 //players in room
 var players = [];
-
-function initGrid() {
-    // Initialize the grid with zeros.
-    for (i = 0; i < canvas_length; ++i) {
-        grid[i] = [];
-
-        for (j = 0; j < canvas_length; ++j) {
-
-            grid[i][j] = 0;
-        }
-    }
-
-    // Draw game borders in grid.
-    let border_start = grid_start - 1;
-    let border_end = grid_end + 1;
-
-    for (i = border_start; i <= border_end; ++i)
-        grid[i][border_start] = 1;
-
-    for (i = border_start; i <= border_end; ++i)
-        grid[i][border_end] = 1;
-
-    for (i = border_start; i <= border_end; ++i)
-        grid[border_start][i] = 1;
-
-    for (i = border_start; i <= border_end; ++i)
-        grid[border_end][i] = 1;
-}
 
 // TODO: function to be called by SocketIO to initialize players array.
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://localhost:8080');
+        socket = io('http://192.168.1.28:8080');
         //try to send an action and wait for connected response
+
         socket.emit("client_action");
+
 
         //if connected is received from the server then create another button to join a room
         socket.on('connect', function(data) {
+            var date = new Date();
+            currentTime = date.getMilliseconds();
+            socket.on("get_grid", getGrid);
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
 
@@ -78,16 +57,14 @@ function setup() {
             document.body.appendChild(btn);
 
             btn.onclick = function() {
-                //remove own button
+                // Remove own button
                 btn.parentNode.removeChild(btn);
                 socket.emit("join_room", "Room1");
-                startGame = true;
 
-
+                // Wait for initial map.
+                socket.on("initialize_game", initGame);
                 initializeLocal();
             }
-
-
         });
     }
 }
@@ -104,23 +81,16 @@ function initializeLocal() {
     number_of_blocks_height = Math.ceil(windowHeight / block_size);
     number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
-    // Initial this player position.
-    player = new Player(new Dir(1, 0), new Position(block_size * 50, block_size * 50), 2);
-
-    // Set initial key pressed.
-    KEY_PRESSED = 'right';
 
     createCanvas(windowWidth, windowHeight);
-
-    initGrid();
 }
+
 function draw() {
 
     // Make speed adapts to change in frame rate
-    speed  =  block_size / 200 * (1000/frameRate())  
+    speed = block_size / 200 * (1000 / frameRate())
 
     if (startGame) { // Clear screen.
-
 
         background(255);
 

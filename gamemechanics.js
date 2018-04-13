@@ -51,6 +51,8 @@ function handleMovement() {
     //assign KEY_PRESSED the right key
     validateKeyPress();
 
+
+    // TODO:
     // If the action is valid
     // Change direction when reaching the end of a cell
     if (ValidAction && player.position.x % block_size < speed && player.position.y % block_size < speed) {
