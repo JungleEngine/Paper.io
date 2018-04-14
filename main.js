@@ -34,7 +34,7 @@ var players = {};
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://192.168.1.28:8080');
+        socket = io('http://localhost:8080');
         //try to send an action and wait for connected response
 
         socket.emit("client_action");

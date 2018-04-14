@@ -38,7 +38,6 @@ function emitUpdatesToServer(updates){
     socket.emit('getClientAction', updates);
 
 }
-function getGrid(data){
 
 function getGrid(data) {
 
