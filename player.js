@@ -22,6 +22,8 @@ class Position {
 
 class Player {
     constructor(dir, position, id) {
+        this.KEY_PRESSED = 'right';
+        this.alive = true
         this.dir = dir;
         this.last_dir = new Dir(dir.x, dir.y);
         this.position = position;

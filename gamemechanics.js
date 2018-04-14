@@ -2,8 +2,8 @@
 function worldToScreenCoordinates(player_global_pixel_position_x
     , player_global_pixel_position_y) {
     // All players to this player distance.
-    let another_player_x_distance = player.position.x - player_global_pixel_position_x;
-    let another_player_y_distance = player.position.y - player_global_pixel_position_y;
+    let another_player_x_distance = players[current_player_ID].position.x - player_global_pixel_position_x;
+    let another_player_y_distance = players[current_player_ID].position.y - player_global_pixel_position_y;
 
     // Get screen pixel coordintes from 0,0.
     return [(windowWidth / 2) - another_player_x_distance, (windowHeight / 2) - another_player_y_distance];
@@ -16,121 +16,225 @@ function globalize() {
 }
 
 
-function validateKeyPress() {
+function validateKeyPress() 
+{
+
     let x = null;
     let y = null;
-    if (keyIsDown(RIGHT_ARROW) && KEY_PRESSED != 'left' && KEY_PRESSED != 'right') {
-        KEY_PRESSED = 'right';
+    if (keyIsDown(RIGHT_ARROW) && players[current_player_ID].KEY_PRESSED != 'left' 
+        && players[current_player_ID].KEY_PRESSED != 'right') 
+    {
+    
+        players[current_player_ID].KEY_PRESSED = 'right';
         x = 1;
         y = 0;
+    
     }
 
-    if (keyIsDown(LEFT_ARROW) && KEY_PRESSED != 'right' && KEY_PRESSED != 'left') {
-        KEY_PRESSED = 'left';
+    if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right' 
+        && players[current_player_ID].KEY_PRESSED != 'left') 
+    {
+    
+        players[current_player_ID].KEY_PRESSED = 'left';
         x = -1;
         y = 0;
+    
     }
 
-    if (keyIsDown(UP_ARROW) && KEY_PRESSED != 'down' && KEY_PRESSED != 'up') {
-        KEY_PRESSED = 'up';
+    if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' && 
+        players[current_player_ID].KEY_PRESSED != 'up') 
+    {
+    
+        players[current_player_ID].KEY_PRESSED = 'up';
         x = 0;
         y = -1;
+    
     }
 
-    if (keyIsDown(DOWN_ARROW) && KEY_PRESSED != 'up' && KEY_PRESSED != 'down') {
-        KEY_PRESSED = 'down';
+    if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' && 
+        players[current_player_ID].KEY_PRESSED != 'down') 
+    {
+     
+        players[current_player_ID].KEY_PRESSED = 'down';
         x = 0;
         y = 1;
+    
     }
+    
     if (x != null && y != null) {
-        socket.emit('validate', [x, y]);
-    }
-}
-function handleMovement() {
 
-    //assign KEY_PRESSED the right key
+        // Send updates to server (player direction, player position ).
+        updates = {};
+        updates["player_dir"] = [x, y];
+        updates["player_pos_normalized"] = players[current_player_ID].position / block_size;
+        emitUpdatesToServer(updates);
+    }
+
+}
+
+function handleMovement() 
+{
+
+    // Players to be removed.
+    players_to_remove = [];
+
+    // Validate player action.
     validateKeyPress();
 
 
-    // TODO:
-    // If the action is valid
-    // Change direction when reaching the end of a cell
-    if (ValidAction && player.position.x % block_size < speed && player.position.y % block_size < speed) {
-        if (KEY_PRESSED == 'right') {
-            player.dir.x = 1;
-            player.dir.y = 0;
+    for ( let i in players )
+    {
+
+    // Change direction when reaching the end of a cell.
+        if ( players[i].position.x % block_size < speed && players[i].position.y % block_size < speed)
+        {
+            
+            if (players[i].KEY_PRESSED == 'right')
+            {
+            
+                players[i].dir.x = 1;
+                players[i].dir.y = 0;
+            
+            }
+
+            if (players[i].KEY_PRESSED == 'left')
+            {
+            
+                players[i].dir.x = -1;
+                players[i].dir.y = 0;
+            
+            }
+
+            if (players[i].KEY_PRESSED == 'up')
+            {
+            
+                players[i].dir.x = 0;
+                players[i].dir.y = -1;
+            
+            }
+
+            if (players[i].KEY_PRESSED == 'down')
+            {
+            
+                players[i].dir.x = 0;
+                players[i].dir.y = 1;
+            
+            }
+
         }
 
-        if (KEY_PRESSED == 'left') {
-            player.dir.x = -1;
-            player.dir.y = 0;
-        }
+      //  console.log("player # " + i + " position " + players[i].position.x)
+        players[i].position.x += players[i].dir.x * speed;
+        players[i].position.y += players[i].dir.y * speed;
 
-        if (KEY_PRESSED == 'up') {
-            player.dir.x = 0;
-            player.dir.y = -1;
-        }
-
-        if (KEY_PRESSED == 'down') {
-            player.dir.x = 0;
-            player.dir.y = 1;
-        }
-    }
-
-    // Update player position.
-    player.position.x += player.dir.x * speed;
-    player.position.y += player.dir.y * speed;
-
-    // Update other players positions.
-    for (i = 0; i < players_in_room_count; i++) {
-        players[i].position.x += player.dir.x * speed;
-        players[i].position.y += player.dir.y * speed;
-    }
 
     // -------------------- Checking for loss ------------------------------
 
     let x = 0;
     let y = 0;
 
-    // Player moving down.
-    if (player.dir.equal(new Dir(0, 1))) {
-        x = Math.round(player.position.x / block_size);
-        y = Math.ceil(player.position.y / block_size);
+    // players[i] moving down.
+    if (players[i].dir.equal(new Dir(0, 1))) 
+    {
+    
+        x = Math.round(players[i].position.x / block_size);
+        y = Math.ceil(players[i].position.y / block_size);
+    
     }
 
-    // Player moving up.
-    if (player.dir.equal(new Dir(0, -1))) {
-        x = Math.round(player.position.x / block_size);
-        y = Math.floor(player.position.y / block_size);
+    // players[i] moving up.
+    if (players[i].dir.equal(new Dir(0, -1)))
+    {
+    
+        x = Math.round(players[i].position.x / block_size);
+        y = Math.floor(players[i].position.y / block_size);
+    
     }
 
-    // Player moving left.
-    if (player.dir.equal(new Dir(1, 0))) {
-        x = Math.ceil(player.position.x / block_size);
-        y = Math.round(player.position.y / block_size);
+    // players[i] moving left.
+    if (players[i].dir.equal(new Dir(1, 0))) 
+    {
+    
+        x = Math.ceil(players[i].position.x / block_size);
+        y = Math.round(players[i].position.y / block_size);
+    
     }
 
-    // Player moving right.
-    if (player.dir.equal(new Dir(-1, 0))) {
-        x = Math.floor(player.position.x / block_size);
-        y = Math.round(player.position.y / block_size);
+    // players[i] moving right.
+    if (players[i].dir.equal(new Dir(-1, 0)))
+    {
+    
+        x = Math.floor(players[i].position.x / block_size);
+        y = Math.round(players[i].position.y / block_size);
+    
     }
 
-    // Hit your tail or border = lose.
-    if (grid[x][y] == player.ID + 1 || grid[x][y] == 1) {
+    // Hit your tail or border or = lose.
+    if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
+    {
+
         window.alert('Game over!');
         socket.disconnect();
         location.reload();
+    
     }
+
+    // Check killing another client ( block ).
+    else if ( ( grid[x][y] - 2 ) % 4 == 0) 
+    {
+       //  To remove player from grid later, head collision.
+       players_to_remove.push(grid[x][y])   
+
+    }
+
+    // TO remove player from grid later, tail collision.
+    else if ( ( grid[x][y] - 3 ) % 4 == 0) 
+    {
+       //  To remove player from grid later.
+       players_to_remove.push(grid[x][y] - 1)   
+
+    }
+
+    }
+
+    // Remove dead players from grid.
+    removeDeadPlayers(players_to_remove);
 }
 
+function removeDeadPlayers(dead_players)
+{
+
+    // Remove dead players from players array.
+    for( let i = 0; i < dead_players.length; i++)
+    {
+        
+        delete players[dead_players[i]];
+
+    }
+
+    //console.log(dead_players.length);
+    
+    for( let i = grid_start; i < grid_end; i++)
+        for( let j = grid_start; j < grid_end; j++)
+        {
+            // If current cell is of a dead player then clear it.
+            if(    dead_players.indexOf(grid[i][j]   ) != -1
+                || dead_players.indexOf(grid[i][j] - 1 ) != -1
+                || dead_players.indexOf(grid[i][j] - 2  ) != -1 )
+            {   
+                
+                grid[i][j] = 0;
+            
+            }
+        }
+}
 
 function drawGrid() {
 
     noStroke();
 
-    let x_window_start = Math.round((player.position.x - (windowWidth / 2)) / block_size);
-    let y_window_start = Math.round((player.position.y - (windowHeight / 2)) / block_size);
+    let x_window_start = Math.round((players[current_player_ID].position.x - (windowWidth / 2)) / block_size);
+    let y_window_start = Math.round((players[current_player_ID].position.y - (windowHeight / 2)) / block_size);
 
     noStroke();
 
@@ -155,69 +259,108 @@ function drawGrid() {
         }
     }
 
+    for ( let i in players)
+    {
+    
     // Draw player shadow.
-    fill(color(COLORS[player.ID + 2]));
+    fill(color(COLORS[players[i].ID + 2]));
 
     let [player_local_pixel_position_x
-        , player_local_pixel_position_y] = worldToScreenCoordinates(player.position.x
-        , player.position.y);
+        , player_local_pixel_position_y] = worldToScreenCoordinates(players[i].position.x
+        , players[i].position.y);
     player_local_pixel_position_x /= block_size;
     player_local_pixel_position_y /= block_size;
 
     rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
 
     // Draw player. 
-    fill(color(COLORS[player.ID]));
+    fill(color(COLORS[players[i].ID]));
 
     rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
+    
+    }
 }
 
 
 function updateGrid() {
 
+    for ( let i in players)
+    {
+    
     let x = 0;
     let y = 0;
 
     // Player moving down. 
-    if (player.dir.equal(new Dir(0, 1))) {
-        x = Math.round(player.position.x / block_size);
-        y = Math.floor(player.position.y / block_size);
+    if (players[i].dir.equal(new Dir(0, 1))) 
+    {
+    
+        x = Math.round(players[i].position.x / block_size);
+        y = Math.floor(players[i].position.y / block_size);
+    
     }
 
-    // Player moving up.
-    if (player.dir.equal(new Dir(0, -1))) {
-        x = Math.round(player.position.x / block_size);
-        y = Math.ceil(player.position.y / block_size);
+    // players[i] moving up.
+    if (players[i].dir.equal(new Dir(0, -1))) 
+    {
+    
+        x = Math.round(players[i].position.x / block_size);
+        y = Math.ceil(players[i].position.y / block_size);
+    
     }
 
-    // Player moving left. 
-    if (player.dir.equal(new Dir(1, 0))) {
-        x = Math.floor(player.position.x / block_size);
-        y = Math.round(player.position.y / block_size);
+    // players[i] moving left. 
+    if (players[i].dir.equal(new Dir(1, 0))) 
+    {
+    
+        x = Math.floor(players[i].position.x / block_size);
+        y = Math.round(players[i].position.y / block_size);
+    
     }
 
-    // Player moving right.
-    if (player.dir.equal(new Dir(-1, 0))) {
-        x = Math.ceil(player.position.x / block_size);
-        y = Math.round(player.position.y / block_size);
+    // players[i] moving right.
+    if (players[i].dir.equal(new Dir(-1, 0))) 
+    {
+    
+        x = Math.ceil(players[i].position.x / block_size);
+        y = Math.round(players[i].position.y / block_size);
+    
     }
 
+    
     // Tail color.
-    grid[x][y] = player.ID + 1;
+    grid[x][y] = players[i].ID + 1;
+
+    }
 }
 
 
-function fixDir() {
+function fixDir()
+{
 
-    if (!player.dir.equal(player.last_dir)) {
-        player.position.x = Math.round(player.position.x / block_size) * block_size;
-        player.position.y = Math.round(player.position.y / block_size) * block_size;
+    for ( let i in players)
+    {
+    
+    if (!players[i].dir.equal(players[i].last_dir)) 
+    {
+    
+        players[i].position.x = Math.round(players[i].position.x / block_size) * block_size;
+        players[i].position.y = Math.round(players[i].position.y / block_size) * block_size;
+    
     }
+    
+    }
+
 }
 
 
 function finalize() {
 
-    player.last_dir.x = player.dir.x;
-    player.last_dir.y = player.dir.y;
+    for ( let i in players)
+    {
+    
+        players[i].last_dir.x = players[i].dir.x;
+        players[i].last_dir.y = players[i].dir.y;
+    
+    }
+
 }

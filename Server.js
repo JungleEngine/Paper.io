@@ -24,7 +24,9 @@ io.on('connection', (socket) => {
 
         console.log(io.nsps['/'].adapter.rooms[data]);
 
+
         console.log(socket.rooms);
+
 
         // Add player in room.
         let new_player_initial_parameters = addPlayer(data, socket.id);
@@ -141,6 +143,7 @@ function setInitialParametersForNewPlayer(room_name, player_id, i) {
     for (let i = player_data["pos_x"] - 1; i <= player_data["pos_x"] + 1; i++)
         for (let j = player_data["pos_y"] - 1; j <= player_data["pos_y"] + 1; j++)
             rooms[room_name].grid[i][j] = player_data["player_color_index"]
+
 
     rooms[room_name].players=[];
     rooms[room_name].players[player_id] = player_data;
