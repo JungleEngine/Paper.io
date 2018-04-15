@@ -245,8 +245,6 @@ function drawGrid()
 
 
                 // Set color for filling.
-                console.log("grid size ",grid.length);
-                console.log("grid color ",grid[i][j],i," ",j);
                 fill(color(COLORS[grid[i][j]]));
 
                 // Convert index in grid to global pixel location.
