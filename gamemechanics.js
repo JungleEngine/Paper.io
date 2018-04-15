@@ -194,10 +194,11 @@ function handleMovement()
 
     }
 
+
     }
 
     // Remove dead players from grid.
-    removeDeadPlayers(players_to_remove);
+   // removeDeadPlayers(players_to_remove);
 }
 
 function removeDeadPlayers(dead_players)
@@ -206,7 +207,7 @@ function removeDeadPlayers(dead_players)
     // Remove dead players from players array.
     for( let i = 0; i < dead_players.length; i++)
     {
-        
+
         delete players[dead_players[i]];
 
     }
@@ -228,7 +229,8 @@ function removeDeadPlayers(dead_players)
         }
 }
 
-function drawGrid() {
+function drawGrid()
+{
 
     noStroke();
 
@@ -241,7 +243,10 @@ function drawGrid() {
         for (j = y_window_start - 1; j <= y_window_start + number_of_blocks_height; ++j) {
             if (grid[i][j] != 0) {
 
+
                 // Set color for filling.
+                console.log("grid size ",grid.length);
+                console.log("grid color ",grid[i][j],i," ",j);
                 fill(color(COLORS[grid[i][j]]));
 
                 // Convert index in grid to global pixel location.
@@ -260,7 +265,7 @@ function drawGrid() {
 
     for ( let i in players)
     {
-    
+
     // Draw player shadow.
     fill(color(COLORS[players[i].ID + 2]));
 
@@ -272,7 +277,7 @@ function drawGrid() {
 
     rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
 
-    // Draw player. 
+    // Draw player.
     fill(color(COLORS[players[i].ID]));
 
     rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
@@ -326,9 +331,18 @@ function updateGrid() {
     }
 
     
+    // Check if grid color is my block color -> leave it.
     // Tail color.
-    grid[x][y] = players[i].ID + 1;
+    if(grid[x][y] == players[i].ID+2)
+    {
+        // TODO:: change filling flag.
+    }
+    else
+    {
 
+    grid[x][y] = players[i].ID + 1;
+    
+    }
     }
 }
 

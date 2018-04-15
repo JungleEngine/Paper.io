@@ -27,14 +27,13 @@ var startGame = false;
 const curr_client_indx = 0
 
 var game_started = false;
-//players in room
-var players = {};
+
 
 // TODO: function to be called by SocketIO to initialize players array.
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://localhost:8080');
+        socket = io('http://172.28.110.88:8080');
         //try to send an action and wait for connected response
          
         socket.emit("client_action");
@@ -45,6 +44,8 @@ function setup() {
             var date = new Date();
             currentTime = date.getMilliseconds();
             socket.on("get_grid",getGrid);
+            socket.on("player_key_press", onPlayKeyPress);
+            socket.on("player_change_direction", onPlayerChangeDir);
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
 
