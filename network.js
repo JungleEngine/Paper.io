@@ -19,7 +19,7 @@ function initGame(data)
         curr_player = data["players"][i]
         //console.log(curr_player.player_color_index)
         player = new Player(new Dir(curr_player["dir_x"], curr_player["dir_y"])
-                ,new Position(block_size * curr_player["pos_x"]
+            ,new Position(block_size * curr_player["pos_x"]
                 ,    block_size * curr_player["pos_y"]), curr_player["ID"]);
 
         //player.KEY_PRESSED = curr_player["KEY_PRESSED"];
@@ -51,7 +51,7 @@ function initGame(data){
 
     // Set current client to players[0].
     players[player.ID] = player;
-    current_player_ID = player.ID;    
+    current_player_ID = player.ID;
    // Set initial key pressed.
     players[player.ID].KEY_PRESSED = data["dir"];
 
@@ -79,10 +79,10 @@ function emitUpdatesToServer(updates){
 
 function getGrid(data){
 
-	console.log(data);
-	var date = new Date();
-	t = date.getMilliseconds();
-	console.log(" time : ", t - currentTime);
+    console.log(data);
+    var date = new Date();
+    t = date.getMilliseconds();
+    console.log(" time : ", t - currentTime);
 }
 
 function onPlayerKeyPress(data)
@@ -112,7 +112,6 @@ function onPlayerChangeDir(data)
     players[data["player_ID"]].dir.x = data["player_dir"][0];
     players[data["player_ID"]].dir.y = data["player_dir"][1];
 
-    console.log(data["player_ID"]);
     // Update target player position.
     players[data["player_ID"]].position.x = data["player_pos"][0] * block_size;
     players[data["player_ID"]].position.y = data["player_pos"][1] * block_size;

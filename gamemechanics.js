@@ -16,51 +16,51 @@ function globalize() {
 }
 
 
-function validateKeyPress() 
+function validateKeyPress()
 {
 
     let x = null;
     let y = null;
-    if (keyIsDown(RIGHT_ARROW) && players[current_player_ID].KEY_PRESSED != 'left' 
-        && players[current_player_ID].KEY_PRESSED != 'right') 
+    if (keyIsDown(RIGHT_ARROW) && players[current_player_ID].KEY_PRESSED != 'left'
+        && players[current_player_ID].KEY_PRESSED != 'right')
     {
-    
+
         players[current_player_ID].KEY_PRESSED = 'right';
         x = 1;
         y = 0;
-    
+
     }
 
-    if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right' 
-        && players[current_player_ID].KEY_PRESSED != 'left') 
+    if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right'
+        && players[current_player_ID].KEY_PRESSED != 'left')
     {
-    
+
         players[current_player_ID].KEY_PRESSED = 'left';
         x = -1;
         y = 0;
-    
+
     }
 
-    if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' && 
-        players[current_player_ID].KEY_PRESSED != 'up') 
+    if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' &&
+        players[current_player_ID].KEY_PRESSED != 'up')
     {
-    
+
         players[current_player_ID].KEY_PRESSED = 'up';
         x = 0;
         y = -1;
-    
+
     }
 
-    if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' && 
-        players[current_player_ID].KEY_PRESSED != 'down') 
+    if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' &&
+        players[current_player_ID].KEY_PRESSED != 'down')
     {
-     
+
         players[current_player_ID].KEY_PRESSED = 'down';
         x = 0;
         y = 1;
-    
+
     }
-    
+
     if (x != null && y != null) {
 
         // Send updates to server (player direction, player position ).
@@ -72,7 +72,7 @@ function validateKeyPress()
 
 }
 
-function handleMovement() 
+function handleMovement()
 {
 
     // Players to be removed.
@@ -90,78 +90,78 @@ function handleMovement()
         players[i].position.x += players[i].dir.x * speed;
         players[i].position.y += players[i].dir.y * speed;
 
-    // -------------------- Checking for loss ------------------------------
+        // -------------------- Checking for loss ------------------------------
 
-    let x = 0;
-    let y = 0;
+        let x = 0;
+        let y = 0;
 
-    // players[i] moving down.
-    if (players[i].dir.equal(new Dir(0, 1))) 
-    {
-    
-        x = Math.round(players[i].position.x / block_size);
-        y = Math.ceil(players[i].position.y / block_size);
-    
-    }
+        // players[i] moving down.
+        if (players[i].dir.equal(new Dir(0, 1)))
+        {
 
-    // players[i] moving up.
-    if (players[i].dir.equal(new Dir(0, -1)))
-    {
-    
-        x = Math.round(players[i].position.x / block_size);
-        y = Math.floor(players[i].position.y / block_size);
-    
-    }
+            x = Math.round(players[i].position.x / block_size);
+            y = Math.ceil(players[i].position.y / block_size);
 
-    // players[i] moving left.
-    if (players[i].dir.equal(new Dir(1, 0))) 
-    {
-    
-        x = Math.ceil(players[i].position.x / block_size);
-        y = Math.round(players[i].position.y / block_size);
-    
-    }
+        }
 
-    // players[i] moving right.
-    if (players[i].dir.equal(new Dir(-1, 0)))
-    {
-    
-        x = Math.floor(players[i].position.x / block_size);
-        y = Math.round(players[i].position.y / block_size);
-    
-    }
+        // players[i] moving up.
+        if (players[i].dir.equal(new Dir(0, -1)))
+        {
 
-    // Hit your tail or border or = lose.
-    if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
-    {
+            x = Math.round(players[i].position.x / block_size);
+            y = Math.floor(players[i].position.y / block_size);
 
-        //window.alert('Game over!');
-        //socket.disconnect();
-        //location.reload();
-    
-    }
+        }
 
-    // Check killing another client ( block ).
-    else if ( ( grid[x][y] - 2 ) % 4 == 0) 
-    {
-       //  To remove player from grid later, head collision.
-       players_to_remove.push(grid[x][y])   
+        // players[i] moving left.
+        if (players[i].dir.equal(new Dir(1, 0)))
+        {
 
-    }
+            x = Math.ceil(players[i].position.x / block_size);
+            y = Math.round(players[i].position.y / block_size);
 
-    // TO remove player from grid later, tail collision.
-    else if ( ( grid[x][y] - 3 ) % 4 == 0) 
-    {
-       //  To remove player from grid later.
-       players_to_remove.push(grid[x][y] - 1)   
+        }
 
-    }
+        // players[i] moving right.
+        if (players[i].dir.equal(new Dir(-1, 0)))
+        {
+
+            x = Math.floor(players[i].position.x / block_size);
+            y = Math.round(players[i].position.y / block_size);
+
+        }
+
+        // Hit your tail or border or = lose.
+        if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
+        {
+
+            //window.alert('Game over!');
+            //socket.disconnect();
+            //location.reload();
+
+        }
+
+        // Check killing another client ( block ).
+        else if ( ( grid[x][y] - 2 ) % 4 == 0)
+        {
+            //  To remove player from grid later, head collision.
+            players_to_remove.push(grid[x][y])
+
+        }
+
+        // TO remove player from grid later, tail collision.
+        else if ( ( grid[x][y] - 3 ) % 4 == 0)
+        {
+            //  To remove player from grid later.
+            players_to_remove.push(grid[x][y] - 1)
+
+        }
 
 
     }
 
     // Remove dead players from grid.
-   // removeDeadPlayers(players_to_remove);
+    // removeDeadPlayers(players_to_remove);
 }
 
 function removeDeadPlayers(dead_players)
@@ -176,7 +176,7 @@ function removeDeadPlayers(dead_players)
     }
 
     //console.log(dead_players.length);
-    
+
     for( let i = grid_start; i < grid_end; i++)
         for( let j = grid_start; j < grid_end; j++)
         {
@@ -184,10 +184,10 @@ function removeDeadPlayers(dead_players)
             if(    dead_players.indexOf(grid[i][j]   ) != -1
                 || dead_players.indexOf(grid[i][j] - 1 ) != -1
                 || dead_players.indexOf(grid[i][j] - 2  ) != -1 )
-            {   
-                
+            {
+
                 grid[i][j] = 0;
-            
+
             }
         }
 }
@@ -219,7 +219,7 @@ function drawGrid()
                     , player_local_pixel_position_y] = worldToScreenCoordinates(player_global_pixel_position_x
                     , player_global_pixel_position_y);
 
-                rect(player_local_pixel_position_x, player_local_pixel_position_y, block_size + 1, block_size + 1); // +1 for filling gaps between cells 
+                rect(player_local_pixel_position_x, player_local_pixel_position_y, block_size + 1, block_size + 1); // +1 for filling gaps between cells
             }
         }
     }
@@ -227,22 +227,22 @@ function drawGrid()
     for ( let i in players)
     {
 
-    // Draw player shadow.
-    fill(color(COLORS[players[i].ID + 2]));
+        // Draw player shadow.
+        fill(color(COLORS[players[i].ID + 2]));
 
-    let [player_local_pixel_position_x
-        , player_local_pixel_position_y] = worldToScreenCoordinates(players[i].position.x
-        , players[i].position.y);
-    player_local_pixel_position_x /= block_size;
-    player_local_pixel_position_y /= block_size;
+        let [player_local_pixel_position_x
+            , player_local_pixel_position_y] = worldToScreenCoordinates(players[i].position.x
+            , players[i].position.y);
+        player_local_pixel_position_x /= block_size;
+        player_local_pixel_position_y /= block_size;
 
-    rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
+        rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
 
-    // Draw player.
-    fill(color(COLORS[players[i].ID]));
+        // Draw player.
+        fill(color(COLORS[players[i].ID]));
 
-    rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
-    
+        rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
+
     }
 }
 
@@ -251,59 +251,59 @@ function updateGrid() {
 
     for ( let i in players)
     {
-    
-    let x = 0;
-    let y = 0;
 
-    // Player moving down. 
-    if (players[i].dir.equal(new Dir(0, 1))) 
-    {
-    
-        x = Math.round(players[i].position.x / block_size);
-        y = Math.floor(players[i].position.y / block_size);
-    
-    }
+        let x = 0;
+        let y = 0;
 
-    // players[i] moving up.
-    if (players[i].dir.equal(new Dir(0, -1))) 
-    {
-    
-        x = Math.round(players[i].position.x / block_size);
-        y = Math.ceil(players[i].position.y / block_size);
-    
-    }
+        // Player moving down.
+        if (players[i].dir.equal(new Dir(0, 1)))
+        {
 
-    // players[i] moving left. 
-    if (players[i].dir.equal(new Dir(1, 0))) 
-    {
-    
-        x = Math.floor(players[i].position.x / block_size);
-        y = Math.round(players[i].position.y / block_size);
-    
-    }
+            x = Math.round(players[i].position.x / block_size);
+            y = Math.floor(players[i].position.y / block_size);
 
-    // players[i] moving right.
-    if (players[i].dir.equal(new Dir(-1, 0))) 
-    {
-    
-        x = Math.ceil(players[i].position.x / block_size);
-        y = Math.round(players[i].position.y / block_size);
-    
-    }
+        }
 
-    
-    // Check if grid color is my block color -> leave it.
-    // Tail color.
-    if(grid[x][y] == players[i].ID+2)
-    {
-        // TODO:: change filling flag.
-    }
-    else
-    {
+        // players[i] moving up.
+        if (players[i].dir.equal(new Dir(0, -1)))
+        {
 
-    grid[x][y] = players[i].ID + 1;
-    
-    }
+            x = Math.round(players[i].position.x / block_size);
+            y = Math.ceil(players[i].position.y / block_size);
+
+        }
+
+        // players[i] moving left.
+        if (players[i].dir.equal(new Dir(1, 0)))
+        {
+
+            x = Math.floor(players[i].position.x / block_size);
+            y = Math.round(players[i].position.y / block_size);
+
+        }
+
+        // players[i] moving right.
+        if (players[i].dir.equal(new Dir(-1, 0)))
+        {
+
+            x = Math.ceil(players[i].position.x / block_size);
+            y = Math.round(players[i].position.y / block_size);
+
+        }
+
+
+        // Check if grid color is my block color -> leave it.
+        // Tail color.
+        if(grid[x][y] == players[i].ID+2)
+        {
+            // TODO:: change filling flag.
+        }
+        else
+        {
+
+            grid[x][y] = players[i].ID + 1;
+
+        }
     }
 }
 
@@ -313,15 +313,15 @@ function fixDir()
 
     for ( let i in players)
     {
-    
-    if (!players[i].dir.equal(players[i].last_dir)) 
-    {
-    
-        players[i].position.x = Math.round(players[i].position.x / block_size) * block_size;
-        players[i].position.y = Math.round(players[i].position.y / block_size) * block_size;
-    
-    }
-    
+
+        if (!players[i].dir.equal(players[i].last_dir))
+        {
+
+            players[i].position.x = Math.round(players[i].position.x / block_size) * block_size;
+            players[i].position.y = Math.round(players[i].position.y / block_size) * block_size;
+
+        }
+
     }
 
 }
@@ -331,10 +331,10 @@ function finalize() {
 
     for ( let i in players)
     {
-    
+
         players[i].last_dir.x = players[i].dir.x;
         players[i].last_dir.y = players[i].dir.y;
-    
+
     }
 
 }
