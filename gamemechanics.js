@@ -84,48 +84,11 @@ function handleMovement()
     for ( let i in players )
     {
 
-    // Change direction when reaching the end of a cell.
-        if ( players[i].position.x % block_size < speed && players[i].position.y % block_size < speed)
-        {
-            
-            if (players[i].KEY_PRESSED == 'right')
-            {
-            
-                players[i].dir.x = 1;
-                players[i].dir.y = 0;
-            
-            }
+        // Change direction when reaching the end of a cell.
+        players[i].updateDirFromKeyPress();
 
-            if (players[i].KEY_PRESSED == 'left')
-            {
-            
-                players[i].dir.x = -1;
-                players[i].dir.y = 0;
-            
-            }
-
-            if (players[i].KEY_PRESSED == 'up')
-            {
-            
-                players[i].dir.x = 0;
-                players[i].dir.y = -1;
-            
-            }
-
-            if (players[i].KEY_PRESSED == 'down')
-            {
-            
-                players[i].dir.x = 0;
-                players[i].dir.y = 1;
-            
-            }
-
-        }
-
-      //  console.log("player # " + i + " position " + players[i].position.x)
         players[i].position.x += players[i].dir.x * speed;
         players[i].position.y += players[i].dir.y * speed;
-
 
     // -------------------- Checking for loss ------------------------------
 
@@ -172,9 +135,9 @@ function handleMovement()
     if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
     {
 
-        window.alert('Game over!');
-        socket.disconnect();
-        location.reload();
+        //window.alert('Game over!');
+        //socket.disconnect();
+        //location.reload();
     
     }
 

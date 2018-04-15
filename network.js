@@ -4,7 +4,8 @@ var players = {};
 // Current Client ID.
 let current_player_ID;
 
-
+var speed;
+var block_size;
 function initGame(data)
 {
 
@@ -84,14 +85,39 @@ function getGrid(data){
 	console.log(" time : ", t - currentTime);
 }
 
-function onPlayKeyPress(data)
+function onPlayerKeyPress(data)
 {
 
-console.log(" Player key press -> ", data)
+    console.log(" Player key press -> ", data);
+
+    // Update target player data.
+    players[data["player_ID"]].dir.x = data["player_dir"][0];
+    players[data["player_ID"]].dir.y = data["player_dir"][1];
+
+    // Update target player position.
+    players[data["player_ID"]].position.x = data["player_pos"][0] * block_size;
+    players[data["player_ID"]].position.y = data["player_pos"][1] * block_size;
+
+    // Update player KEY_PRESSED from dir.
+    players[data["player_ID"]].updateKeyPressFromDir();
+
 }
 
 function onPlayerChangeDir(data)
 {
 
-console.log(" player change dir -> ", data)
+    console.log(" player change dir -> ", data)
+
+    // Update target player data.
+    players[data["player_ID"]].dir.x = data["player_dir"][0];
+    players[data["player_ID"]].dir.y = data["player_dir"][1];
+
+    console.log(data["player_ID"]);
+    // Update target player position.
+    players[data["player_ID"]].position.x = data["player_pos"][0] * block_size;
+    players[data["player_ID"]].position.y = data["player_pos"][1] * block_size;
+
+    // Update player KEY_PRESSED from dir.
+    players[data["player_ID"]].updateKeyPressFromDir();
+
 }

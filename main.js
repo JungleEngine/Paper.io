@@ -1,7 +1,3 @@
-// White, Border, Player1, Player1_Tail, Player1_Shadow, Player2, Player2_Tail, ...
-var COLORS = [ 'empty', '#edeff4'
-             , '#0041a1', '#076bff', '#000066', '#002c6e'
-             , '#660000', '#ff3333', '#660000', '#ff8080' ];
 
 var KEY_PRESSED;
 var grid = [];
@@ -12,8 +8,13 @@ var block_height;
 var number_of_blocks_height;
 var number_of_blocks_width;
 var player;
-var speed;
-var block_size;
+
+var COLORS = [ 'empty', '#edeff4'
+    // Blue Player.
+    , '#0041a1', '#076bff', '#000066', '#002c6e'
+    // Red Player.
+    , '#660000', '#ff3333', '#660000', '#ff8080' ]
+
 var socket;
 var currentTime = 0;
 var ValidAction = true;
@@ -33,7 +34,7 @@ var game_started = false;
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://192.168.43.146:8080');
+        socket = io('http://192.168.1.27:8080');
         //try to send an action and wait for connected response
          
         socket.emit("client_action");
@@ -45,7 +46,7 @@ function setup() {
             currentTime = date.getMilliseconds();
 
             socket.on("get_grid",getGrid);
-            socket.on("player_key_press", onPlayKeyPress);
+            socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
@@ -83,20 +84,26 @@ function initializeLocal() {
     block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
     block_size = (Math.round(block_size / 10) * 10);
 
+   // game_config.BLOCK_SIZE = block_size;
+
     speed = block_size / 10;
+
+ //   game_config.SPEED = speed;
 
     number_of_blocks_height = Math.ceil(windowHeight / block_size);
     number_of_blocks_width = Math.ceil(windowWidth / block_size);
 
- 
+   //  game_config.NUMBER_OF_BLOCKS_HEIGHT = number_of_blocks_height;
+   // game_config.NUMBER_OF_BLOCKS_WIDTH = number_of_blocks_width;
     createCanvas(windowWidth, windowHeight);
 }
 function draw() {
 
     // Make speed adapts to change in frame rate
-    speed  =  block_size / 200 * (1000/frameRate())  
+    //speed  =  block_size / 200 * (1000/frameRate())
+    speed = 1.5 * block_size * 1/frameRate();
 
-    if (startGame) 
+    if (startGame)
     { 
 
         // Clear screen.
