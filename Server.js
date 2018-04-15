@@ -1,79 +1,122 @@
 "use strict";
 
+var async = require('async');
+var io = require('socket.io', {rememberTransport: false, transports: ['WebSocket']}).listen(8080);
+
+
+var playerID = [];
+var rooms = {};
 // variable used to calculate players positions
 // should be removed
 var x = 2;
 
+const room_capacity = 3; //TODO: use this..
 const speed = 1.5; // blocks/sec
-var async = require('async');
-var io = require('socket.io', {rememberTransport: false, transports: ['WebSocket']}).listen(8080);
-const room_capacity = 3;
-
-var playerID = [];
-
-var rooms = {};
+const canvas_length = 200;
+const grid_start = 50;
+const grid_length = 100;
+const grid_end = grid_start + grid_length;
 
 io.on('connection', (socket) => {
-    let arr = [];
-    for (let i = 0; i < 10000; i++)
-        arr[i] = i;
-    socket.emit("get_grid", arr);
 
-    // Joining a room callback.
-    socket.on('join_room', (data) => {
+    socket.on('join_room', (room_name) => {
 
-        console.log(io.nsps['/'].adapter.rooms[data]);
-
-        console.log(socket.rooms);
+        //console.log(io.nsps['/'].adapter.rooms[data]);
 
         // Add player in room.
-        let player_parameters = addPlayer(data,socket.id);
+        let player_parameters = addPlayer(room_name, socket.id);
 
-        socket.join(data);
+        // Join new room.
+        socket.join(room_name);
 
         // Leave his own room.
         socket.leave(socket.id);
 
         // Send initial parameters to connected Client
         socket.emit("initialize_game", player_parameters);
+
     });
 
     socket.on('disconnect', (data) => {
         console.log("Player disconnected ", io.nsps['/'].adapter.rooms);
     });
 
-    socket.on('validate', (data) => {
+    socket.on('validate', (dir) => {
 
+        let new_dir_x = dir.player_dir[0];
+        let new_dir_y = dir.player_dir[1];
+        let rooms_keys = Object.keys(socket.rooms);
+        let player = rooms[rooms_keys[rooms_keys.length - 1]].players[socket.id];
 
-        let new_dir_x = data.player_dir[0];
-        let new_dir_y = data.player_dir[1];
         console.log("Key pressed: ", new_dir_x, new_dir_y);
-        let key = Object.keys(socket.rooms);
-
-        player = rooms[key[key.length - 1]].players[socket.id];
-        console.log(rooms[key[key.length - 1]].players);
-
-        if (!new_dir_x - player.dir_x > 1 && !new_dir_y - player.dir_y > 1) {
+        console.log("Player that pressed key: ", player);
+    
+        //if x==0 && new_x == -1 || new_x ==1 && new_y==0   moving vertically and new dir = moving horizontally
+        //if y==0 && new_y == -1 || new_y ==1 && new_x==0   moving horizontally and new dir = moving vertically
+        if ((player.dir_x == 0 && (new_dir_x == 1 || new_dir_x == -1) && new_dir_y == 0) ||
+            (player.dir_y == 0 && (new_dir_y == 1 || new_dir_y == -1) && new_dir_x == 0)) {
             player.next_dir_x = new_dir_x;
             player.next_dir_y = new_dir_y;
-
-            //TODO:if action is valid send it to the everyone and send
-            io.to(rooms[key[key.length - 1]]).emit('player_key_press', [player.ID, data, [player.pos_x, player.pos_y]]);
+            console.log("key pressed called");
+            // If action is valid send it to the everyone
+            io.to(rooms[rooms_keys[rooms_keys.length - 1]]).emit('player_key_press', {
+                "player_ID": player.ID,
+                "next_dir": dir,
+                "player_pos": [player.pos_x, player.pos_y]
+            });
         }
     });
 
 });
 
 
-const canvas_length = 200;
-const grid_start = 50;
-const grid_length = 100;
-const grid_end = grid_start + grid_length;
+/**
+ * Initialize new position for new connected player.
+ *
+ * @param room_name
+ * @param socket_id
+ * @returns New player ID
+ */
+function setInitialParametersForNewPlayer(room_name, socket_id) {
 
-//TODO:create a grid for each room
+    //TODO: Generate new position for player by knowing his room.
 
-function initNewRoom(room_name,socket_id) {
+    let player_data = {};
+    let i = x;
+    x += 4;
 
+    //TODO: Find position for new player
+    player_data.pos_x = ((20 * i) % 150) + 50;
+    player_data.pos_y = ((20 * i) % 150) + 50;
+    player_data.dir_x = 1;
+    player_data.dir_y = 0;
+    player_data.next_dir_x = 1;
+    player_data.next_dir_y = 0;
+    player_data.ID = i;
+
+    // Set initial 3 cells for player
+    for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
+        for (let j = player_data.pos_y - 1; j <= player_data.pos_y + 1; j++) {
+            rooms[room_name].grid[i][j] = player_data.ID + 2;
+        }
+    }
+
+    // Insert player in the room players
+    rooms[room_name].players[socket_id] = player_data;
+
+    return player_data.ID;
+}
+
+/**
+ * Create new room with new grid and insert new player in it.
+ *
+ * @param room_name
+ * @param socket_id
+ * @returns New player ID
+ */
+function initNewRoom(room_name, socket_id) {
+
+    //TODO:create a grid for each room
     var grid = [];
 
     // Initialize the grid with zeros.
@@ -84,21 +127,18 @@ function initNewRoom(room_name,socket_id) {
         }
     }
 
-    // Draw game borders in grid.
+    // Place game borders in grid.
     let border_start = grid_start - 1;
     let border_end = grid_end + 1;
-
     for (let i = border_start; i <= border_end; ++i)
         grid[i][border_start] = 1;
-
     for (let i = border_start; i <= border_end; ++i)
         grid[i][border_end] = 1;
-
     for (let i = border_start; i <= border_end; ++i)
         grid[border_start][i] = 1;
-
     for (let i = border_start; i <= border_end; ++i)
         grid[border_end][i] = 1;
+
 
     // Create new room.
     rooms[room_name] = {};
@@ -121,83 +161,136 @@ function initNewRoom(room_name,socket_id) {
         }
     );
 
-
-    //simulate();
-
-    let y = x;
-    x += 4;
     // Insert player in the room.
-    return setInitialParametersForNewPlayer(room_name, y,socket_id);
-
-
-    // Check if room  is empty, else get current room grid and send it .
-    //let grid_to_send;
-    //let new_player_initial_parameters;
-    // Set initial parameters  for new connected client.
-    //new_player_initial_parameters = getInitialParametersForNewPlayer(data);
-    //new_player_initial_parameters["grid"] = rooms[data].grid;
+    return setInitialParametersForNewPlayer(room_name, socket_id);
 }
 
-function updateCurrentRoom(room_name,socket_id) {
+/**
+ * Insert new player in room and notify other room players.
+ *
+ * @param room_name
+ * @param socket_id
+ * @returns New player ID
+ */
+function updateCurrentRoom(room_name, socket_id) {
+
+    //TODO: Send new player to players in the room
 
     // Insert player in the room.
-    let y = x;
-    x += 4;
-    return setInitialParametersForNewPlayer(room_name, y,socket_id);
+    return setInitialParametersForNewPlayer(room_name, socket_id);
 }
 
-// Initialize new position for new connected player.
-// TODO: generate new position for player by knowing his room.
-function setInitialParametersForNewPlayer(room_name, i,socket_id) {
+/**
+ * Adds player in existing room or create new room and insert the player in it
+ *
+ * @param room_name
+ * @param socket_id
+ */
+function addPlayer(room_name, socket_id) {
 
-    let player_data = {};
-    player_data["pos_x"] = ((20 * i) % 150) + 50;
-    player_data["pos_y"] = ((20 * i) % 150) + 50;
-    player_data["dir_x"] = 1;
-    player_data["dir_y"] = 0;
-    player_data["ID"] = i;
+    // Initial parameters to be sent to new player.
+    let player_parameters = {};
 
-    // Set initial 5 cells for player
-    for (let i = player_data["pos_x"] - 1; i <= player_data["pos_x"] + 1; i++)
-        for (let j = player_data["pos_y"] - 1; j <= player_data["pos_y"] + 1; j++) {
+    // If room does not exist, create new room.
+    if (!io.nsps['/'].adapter.rooms[room_name]) {
+        player_parameters.player_id = initNewRoom(room_name, socket_id);
+    }
+    else {
+        player_parameters.player_id = updateCurrentRoom(room_name, socket_id);
+    }
 
+    player_parameters.grid = rooms[room_name].grid;
 
-            try {
-                rooms[room_name].grid[i][j] = player_data["player_color_index"];
-            } catch (e) {
-                console.log("error in initializing blocks for the player in: ", i, j);
-            }
+    // Make array of players to be sent to the client.
+    let players = [];
+    let map = rooms[room_name].players;
+    for (let key of Object.keys(map)) {
+        players.push(map[key]);
+    }
+    player_parameters.players = players;
 
-        }
-
-    rooms[room_name].players[socket_id] = player_data;
-
-    return player_data.ID;
+    return player_parameters;
 }
 
-// TODO:make this function general for each room
+/**
+ * Simulates players actions and movements in the room
+ * TODO: Make this function general for each room
+ *
+ * Player attributes:
+ * 1 = ID
+ * 2 = Tail
+ * 3 = Block
+ * 4 = Shadow
+ *
+ * @param room_name
+ */
 function simulate(room_name) {
 
-    // Player attributes:
-    // 1 = ID
-    // 2 = Tail
-    // 3 = Block
-    // 4 = Shadow
-    // while (true) {
-    //for (player,indx in rooms[room_name].players) {
-    for (let [player, indx] of rooms[room_name].players.entries()) {
+    function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx) {
+
+        while (delta > 0) {
+            let cell = rooms[room_name].grid[Math.round(last_pos.x + (0.5 * last_pos.x))][Math.round(last_pos.y + (0.5 * last_pos.y))];
+            if (delta < 1) {
+                // Put head
+                cell = player.ID;
+            }
+            else { // Player jumped more than 1 cell
+
+                // Change position according to moving direction
+                if (player_pos > last_pos_x_or_y) {
+                    last_pos_x_or_y++;
+
+                } else {
+                    last_pos_x_or_y--;
+                }
+
+                if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
+                    // Die
+                    removeDeadPlayer(room_name, indx);
+                }
+                else if (cell == player.ID + 2) {     // Own block
+                    //TODO: Fill path
+                }
+                else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+                    // Put tail
+                    cell = player.ID + 1;
+                }
+                else {
+                    // Kill
+                    removeDeadPlayer(room_name, getSocketIDfromPlayerID(player.ID));
+                }
+            }
+            delta--;
+        }
+    }
+
+    let map = rooms[room_name].players;
+    for (let indx of Object.keys(map)) {
+
+        let player = map[indx];
+        let last_pos = {"x": player.pos_x, "y": player.pos_y};
         let time = process.hrtime();
-        let delta_time = player.last_time_stamp - time;
-        let last_pos_x = player.pos_x;
-        let last_pos_y = player.pos_y;
+
+        // time = secs * 10^9 + nanoseconds
+        time = time[0] * 1000000000 + time[1];
+
+        // First run
+        if (!player.last_time_stamp) {
+            player.last_time_stamp = time;
+        }
+
+        let delta_time = (time - player.last_time_stamp) / 1000000000;
         player.last_time_stamp = time;
+
+        // Update player position according to speed and delta time.
         player.pos_x += speed * player.dir_x * delta_time;
         player.pos_y += speed * player.dir_y * delta_time;
+
 
         // If direction changed
         if (player.dir_x != player.next_dir_x || player.dir_y != player.next_dir_y) {
             // Player crossed cell horizontally
-            if (player.dir_x != 0 && Math.round(0.5 + last_pos_x) != Math.round(0.5 + player.pos_x)) {
+            if (player.dir_x != 0 && Math.round(0.5 + last_pos.x) != Math.round(0.5 + player.pos_x)) {
                 if (player.dir_x == 1) {    // Moving right
                     player.pos_x = Math.floor(player.pos_x) + 0.5;
                 }
@@ -208,7 +301,7 @@ function simulate(room_name) {
                 player.dir_y = player.next_dir_y;
             }
             // Player crossed cell vertically
-            if (player.dir_y != 0 && Math.round(0.5 + last_pos_y) != Math.round(0.5 + player.pos_y)) {
+            if (player.dir_y != 0 && Math.round(0.5 + last_pos.y) != Math.round(0.5 + player.pos_y)) {
                 if (player.dir_y == 1) {    // Moving down
                     player.pos_y = Math.floor(player.pos_y) + 0.5;
                 }
@@ -218,111 +311,39 @@ function simulate(room_name) {
                 player.dir_x = player.next_dir_x;
                 player.dir_y = player.next_dir_y;
             }
-            io.to(room_name).emit('player_change_direction', [player.ID, [player.dir_x, player.dir_y], [player.pos_x, player.pos_y]]);
+            io.to(room_name).emit('player_change_direction', {
+                "player_ID": player.ID,
+                "player_dir": [player.dir_x, player.dir_y],
+                "player_pos": [player.pos_x, player.pos_y]
+            });
         }
-        let x_delta = Math.abs(player.pos_x - last_pos_x);
-        let y_delta = Math.abs(player.pos_y - last_pos_y);
-        while (x_delta > 0) {
 
-            let cell = rooms[room_name].grid[player.pos_x][player.pos_y];
-            if (x_delta < 1) {
-                //TODO: Put head
-                rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_x))] = player.ID;
-            }
-            else {
-                if (player.pos_x > last_position.x) {
-                    player.pos_x--;
-                } else {
-                    player.pos_x++;
-                }
-                if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
-                    // Die
-                    console.log("Player" + player.ID + "Died!");
-                    removeDeadPlayer(room_name, indx);
-                }
-                else if (cell == player.ID + 2) {     // Own block
-                    //TODO: Fill path
-                }
-                else if (cell == 0 || cell % 4 == 0) {     // Empty || block
-                    // Put tail
-                    rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_x))] = player.ID + 1;
-                }
-                else {
-                    // Kill
-                    removeDeadPlayer(room_name, getSocketIDfromPlayerID(player.ID));
-                }
-            }
+        // Skipped cells in x and in y
+        let x_delta = Math.abs(player.pos_x - last_pos.x);
+        let y_delta = Math.abs(player.pos_y - last_pos.y);
 
-            x_delta--;
-        }
-        while (y_delta > 0) {
+        // Move on skipped cells in x and in y
+        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
+        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
 
-            let cell = rooms[room_name].grid[player.pos_x][player.pos_y];
-            if (y_delta < 1) {
-                //TODO: Put head
-                rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_x))] = player.ID;
-            }
-            else {
-                if (player.pos_y > last_position.y) {
-                    player.pos_y--;
-                } else {
-                    player.pos_y++;
-                }
-                if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
-                    // Die
-                    removeDeadPlayer(room_name, indx);
-                }
-                else if (cell == player.ID + 2) {     // Own block
-                    //TODO: Fill path
-                }
-                else if (cell == 0 || cell % 4 == 0) {     // Empty || block
-                    // Put tail
-                    rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_x))] = player.ID + 1;
-                }
-                else {
-                    // Kill
-                    removeDeadPlayer(room_name, getSocketIDfromPlayerID(player.ID));
-                }
-            }
-
-            y_delta--;
-        }
     }
-    //}
 }
 
-function addPlayer(room_name,socket_id) {
-
-    let player_parameters = {};
-
-    // If room does not exist.
-    if (!io.nsps['/'].adapter.rooms[room_name]) {
-        player_parameters.player_id = initNewRoom(room_name,socket_id);
-    }
-    else {
-        player_parameters.player_id = updateCurrentRoom(room_name,socket_id);
-    }
-
-    player_parameters.grid = rooms[room_name].grid;
-    let players=[];
-    console.log(rooms[room_name].players);
-    let map = rooms[room_name].players;
-    for(let key of Object.keys(map)){
-        console.log("map[kry]" + map[key]);
-        console.log("key:" + key);
-        players.push(map[key]);
-    }
-    player_parameters.players = players;
-    return player_parameters;
-}
-
+/**
+ * Removes dead player from room players and from the grid
+ *
+ * @param room_name
+ * @param player socket.id
+ */
 function removeDeadPlayer(room_name, player) {
+
+    console.log("Player " + player + " died!");
 
     playerID = rooms[room_name].players[player].ID;
 
+    // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {
-            // Clear cells of the dead player
             if (grid[i][j] == playerID ||
                 grid[i][j] == playerID + 1 ||
                 grid[i][j] == playerID + 2) {
@@ -335,7 +356,15 @@ function removeDeadPlayer(room_name, player) {
     delete rooms[room_name].players[player];
 }
 
-function getSocketIDfromPlayerID(playerID,room_name) {
+
+/**
+ * Gets the player socket.id from the player ID in the room
+ *
+ * @param playerID
+ * @param room_name
+ * @returns player socket.id
+ */
+function getSocketIDfromPlayerID(playerID, room_name) {
     for (let [player, indx] of rooms[room_name].players.entries()) {
         if (player.ID == playerID) {
             return indx;
