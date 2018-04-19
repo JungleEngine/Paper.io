@@ -4,7 +4,7 @@ var players = {};
 // Current Client ID.
 let current_player_ID;
 
-var speed;
+
 var block_size;
 function initGame(data)
 {
@@ -106,7 +106,7 @@ function onPlayerKeyPress(data)
 function onPlayerChangeDir(data)
 {
 
-    console.log(" player change dir -> ", data)
+    console.log(" player change dir -> ", data);
 
     // Update target player data.
     players[data["player_ID"]].dir.x = data["player_dir"][0];
