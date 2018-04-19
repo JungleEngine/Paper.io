@@ -33,7 +33,7 @@ var game_started = false;
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://192.168.1.27:8080');
+        socket = io('http://localhost:8080');
         //try to send an action and wait for connected response
 
         socket.emit("client_action");
@@ -45,7 +45,6 @@ function setup() {
             currentTime = date.getMilliseconds();
 
 
-            socket.on("get_grid",getGrid);
             socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
 
@@ -82,11 +81,8 @@ function initializeLocal() {
 
     block_size = Math.round(Math.max(windowWidth, windowHeight) / view_blocks_number);
     block_size = (Math.round(block_size / 10) * 10);
-
+    GameConfig.BLOCK_SIZE = block_size;
     // game_config.BLOCK_SIZE = block_size;
-
-    speed = block_size / 10;
-
     //   game_config.SPEED = speed;
 
     number_of_blocks_height = Math.ceil(windowHeight / block_size);
@@ -101,11 +97,10 @@ function initializeLocal() {
 }
 
 function draw() {
-
+    GameConfig.UPDATE_SPEED(getFrameRate(), 3);
     // Make speed adapts to change in frame rate
 
     //speed  =  block_size / 200 * (1000/frameRate())
-    speed = 1.5 * block_size * 1/frameRate();
 
     if (startGame)
     {
@@ -114,6 +109,7 @@ function draw() {
 
         // Change players positions.
         handleMovement();
+
 
         fixDir();
 

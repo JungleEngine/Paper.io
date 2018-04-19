@@ -11,7 +11,7 @@ var rooms = {};
 var x = 2;
 
 const room_capacity = 3; //TODO: use this..
-const speed = 1.5; // blocks/sec
+const speed = 3; // blocks/sec
 const canvas_length = 200;
 const grid_start = 50;
 const grid_length = 100;
@@ -57,11 +57,13 @@ io.on('connection', (socket) => {
             (player.dir_y == 0 && (new_dir_y == 1 || new_dir_y == -1) && new_dir_x == 0)) {
             player.next_dir_x = new_dir_x;
             player.next_dir_y = new_dir_y;
-            console.log("key pressed called");
+
+            let room_name=socket.rooms[Object.keys(socket.rooms)[Object.keys(socket.rooms).length - 1]];
+
             // If action is valid send it to the everyone
-            io.to(rooms[rooms_keys[rooms_keys.length - 1]]).emit('player_key_press', {
+            io.to(room_name).emit('player_key_press', {
                 "player_ID": player.ID,
-                "next_dir": dir,
+                "player_next_dir": dir,
                 "player_pos": [player.pos_x, player.pos_y]
             });
         }
@@ -86,8 +88,8 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     x += 4;
 
     //TODO: Find position for new player
-    player_data.pos_x = ((20 * i) % 150) + 50;
-    player_data.pos_y = ((20 * i) % 150) + 50;
+    player_data.pos_x = 70;
+    player_data.pos_y = 70;
     player_data.dir_x = 1;
     player_data.dir_y = 0;
     player_data.next_dir_x = 1;
@@ -311,6 +313,7 @@ function simulate(room_name) {
                 player.dir_x = player.next_dir_x;
                 player.dir_y = player.next_dir_y;
             }
+            console.log(player.pos_x, player.pos_y);
             io.to(room_name).emit('player_change_direction', {
                 "player_ID": player.ID,
                 "player_dir": [player.dir_x, player.dir_y],

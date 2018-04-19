@@ -31,7 +31,7 @@ function validateKeyPress()
 
     }
 
-    if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right'
+    else if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right'
         && players[current_player_ID].KEY_PRESSED != 'left')
     {
 
@@ -41,7 +41,7 @@ function validateKeyPress()
 
     }
 
-    if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' &&
+    else if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' &&
         players[current_player_ID].KEY_PRESSED != 'up')
     {
 
@@ -51,7 +51,7 @@ function validateKeyPress()
 
     }
 
-    if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' &&
+    else if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' &&
         players[current_player_ID].KEY_PRESSED != 'down')
     {
 
@@ -87,9 +87,8 @@ function handleMovement()
         // Change direction when reaching the end of a cell.
         players[i].updateDirFromKeyPress();
 
-        players[i].position.x += players[i].dir.x * speed;
-        players[i].position.y += players[i].dir.y * speed;
-
+        players[i].position.x += players[i].dir.x * GameConfig.SPEED;
+        players[i].position.y += players[i].dir.y * GameConfig.SPEED;
         // -------------------- Checking for loss ------------------------------
 
         let x = 0;
@@ -202,8 +201,10 @@ function drawGrid()
 
     noStroke();
 
+
     for (i = x_window_start - 1; i <= x_window_start + number_of_blocks_width; ++i) {
         for (j = y_window_start - 1; j <= y_window_start + number_of_blocks_height; ++j) {
+            //console.log(" window_start " , x_window_start,"number  of blocks",number_of_blocks_width);
             if (grid[i][j] != 0) {
 
 
@@ -314,11 +315,58 @@ function fixDir()
     for ( let i in players)
     {
 
+        // Do not fix direction if the server already fixed it before.
+        if(players[i].direction_already_fixed)
+        {
+
+            players[i].direction_already_fixed = false;
+            continue;
+        }
         if (!players[i].dir.equal(players[i].last_dir))
         {
 
-            players[i].position.x = Math.round(players[i].position.x / block_size) * block_size;
-            players[i].position.y = Math.round(players[i].position.y / block_size) * block_size;
+
+            let x = 0;
+            let y = 0;
+
+            // Player moving down.
+            if (players[i].dir.equal(new Dir(0, 1)))
+            {
+
+                x = Math.round(players[i].position.x / block_size);
+                y = Math.floor(players[i].position.y / block_size);
+
+            }
+
+            // players[i] moving up.
+            if (players[i].dir.equal(new Dir(0, -1)))
+            {
+
+                x = Math.round(players[i].position.x / block_size);
+                y = Math.ceil(players[i].position.y / block_size);
+
+            }
+
+            // players[i] moving left.
+            if (players[i].dir.equal(new Dir(1, 0)))
+            {
+
+                x = Math.floor(players[i].position.x / block_size);
+                y = Math.round(players[i].position.y / block_size);
+
+            }
+
+            // players[i] moving right.
+            if (players[i].dir.equal(new Dir(-1, 0)))
+            {
+
+                x = Math.ceil(players[i].position.x / block_size);
+                y = Math.round(players[i].position.y / block_size);
+
+            }
+
+            players[i].position.x = x * block_size;
+            players[i].position.y = y * block_size;
 
         }
 
