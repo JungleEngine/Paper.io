@@ -12,7 +12,7 @@ var COLORS = [ 'empty', '#edeff4'
     // Blue Player.
     , '#0041a1', '#076bff', '#000066', '#002c6e'
     // Red Player.
-    , '#660000', '#ff3333', '#660000', '#ff8080' ]
+    , '#660000', '#ff3333', '#660000', '#ff8080' ];
 
 var socket;
 var currentTime = 0;
@@ -24,16 +24,17 @@ const grid_end = grid_start + grid_length;
 const border_to_block_ratio = 0.5;
 var startGame = false;
 
-const curr_client_indx = 0
+const curr_client_indx = 0;
 
 var game_started = false;
 
 
-// TODO: function to be called by SocketIO to initialize players array.
+// TODO: function to be called by SocketIO to initialize playerslocalhost array.
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io('http://localhost:8080');
+        socket = io();
+
         //try to send an action and wait for connected response
 
         socket.emit("client_action");
@@ -117,7 +118,9 @@ function draw() {
 
         drawGrid();
 
+       // checkFilling();
         finalize();
+
 
     }
 

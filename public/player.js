@@ -31,6 +31,7 @@ class Player {
         this.area = 0;
         this.name = "samir";
         this.ID = id;
+        this.should_fill = false;
     }
 
     // Update key press from dir.
@@ -71,7 +72,7 @@ class Player {
     // Update key press from a given dir.
     updatePlayerKeyPressFromDir(dir_x, dir_y)
     {
-        console.log("fdgkdfgjdfsjgkfdsjgkf")
+
         let dir = new Dir(dir_x, dir_y);
 
         if (dir.equal(new Dir(1, 0)))

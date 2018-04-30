@@ -374,6 +374,19 @@ function fixDir()
 
 }
 
+// Check filling for every player.
+function checkFilling()
+{
+    for ( let i in players)
+    {
+
+        // Update status of filling when player leaves his area, status bit = 1;
+      //  players[i].updateFillingStatus();
+
+    }
+
+
+}
 
 function finalize() {
 
