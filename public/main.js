@@ -1,5 +1,4 @@
 var KEY_PRESSED;
-var grid = [];
 var aspect_ratio;
 var view_blocks_number = 40;
 var block_width;
@@ -33,7 +32,7 @@ var game_started = false;
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io();
+        socket = io("http://localhost:8080");
 
         //try to send an action and wait for connected response
 
@@ -118,7 +117,7 @@ function draw() {
 
         drawGrid();
 
-       // checkFilling();
+        checkFilling();
         finalize();
 
 

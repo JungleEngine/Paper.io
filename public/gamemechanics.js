@@ -131,7 +131,7 @@ function handleMovement()
         }
 
         // Hit your tail or border or = lose.
-        if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
+        if (GameConfig.GRID[x][y] == 1 ||  GameConfig.GRID[x][y] == players[i].ID + 1 )
         {
 
             //window.alert('Game over!');
@@ -141,25 +141,25 @@ function handleMovement()
         }
 
         // Check killing another client ( block ).
-        else if ( ( grid[x][y] - 2 ) % 4 == 0)
+        else if ( ( GameConfig.GRID[x][y] - 2 ) % 4 == 0)
         {
-            //  To remove player from grid later, head collision.
-            players_to_remove.push(grid[x][y])
+            //  To remove player from GameConfig.GRID later, head collision.
+            players_to_remove.push(GameConfig.GRID[x][y])
 
         }
 
-        // TO remove player from grid later, tail collision.
-        else if ( ( grid[x][y] - 3 ) % 4 == 0)
+        // TO remove player from GameConfig.GRID later, tail collision.
+        else if ( ( GameConfig.GRID[x][y] - 3 ) % 4 == 0)
         {
-            //  To remove player from grid later.
-            players_to_remove.push(grid[x][y] - 1)
+            //  To remove player from GameConfig.GRID later.
+            players_to_remove.push(GameConfig.GRID[x][y] - 1)
 
         }
 
 
     }
 
-    // Remove dead players from grid.
+    // Remove dead players from GameConfig.GRID.
     // removeDeadPlayers(players_to_remove);
 }
 
@@ -180,12 +180,12 @@ function removeDeadPlayers(dead_players)
         for( let j = grid_start; j < grid_end; j++)
         {
             // If current cell is of a dead player then clear it.
-            if(    dead_players.indexOf(grid[i][j]   ) != -1
-                || dead_players.indexOf(grid[i][j] - 1 ) != -1
-                || dead_players.indexOf(grid[i][j] - 2  ) != -1 )
+            if(    dead_players.indexOf(GameConfig.GRID[i][j]   ) != -1
+                || dead_players.indexOf(GameConfig.GRID[i][j] - 1 ) != -1
+                || dead_players.indexOf(GameConfig.GRID[i][j] - 2  ) != -1 )
             {
 
-                grid[i][j] = 0;
+                GameConfig.GRID[i][j] = 0;
 
             }
         }
@@ -205,13 +205,13 @@ function drawGrid()
     for (i = x_window_start - 1; i <= x_window_start + number_of_blocks_width; ++i) {
         for (j = y_window_start - 1; j <= y_window_start + number_of_blocks_height; ++j) {
             //console.log(" window_start " , x_window_start,"number  of blocks",number_of_blocks_width);
-            if (grid[i][j] != 0) {
+            if (GameConfig.GRID[i][j] != 0) {
 
 
                 // Set color for filling.
-                fill(color(COLORS[grid[i][j]]));
+                fill(color(COLORS[GameConfig.GRID[i][j]]));
 
-                // Convert index in grid to global pixel location.
+                // Convert index in GameConfig.GRID to global pixel location.
                 player_global_pixel_position_x = i * block_size;
                 player_global_pixel_position_y = j * block_size;
 
@@ -256,53 +256,29 @@ function updateGrid() {
         let x = 0;
         let y = 0;
 
-        // Player moving down.
-        if (players[i].dir.equal(new Dir(0, 1)))
-        {
-
-            x = Math.round(players[i].position.x / block_size);
-            y = Math.floor(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving up.
-        if (players[i].dir.equal(new Dir(0, -1)))
-        {
-
-            x = Math.round(players[i].position.x / block_size);
-            y = Math.ceil(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving left.
-        if (players[i].dir.equal(new Dir(1, 0)))
-        {
-
-            x = Math.floor(players[i].position.x / block_size);
-            y = Math.round(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving right.
-        if (players[i].dir.equal(new Dir(-1, 0)))
-        {
-
-            x = Math.ceil(players[i].position.x / block_size);
-            y = Math.round(players[i].position.y / block_size);
-
-        }
-
+        let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
+        x = player_pos_on_grid.x;
+        y = player_pos_on_grid.y;
 
         // Check if grid color is my block color -> leave it.
         // Tail color.
-        if(grid[x][y] == players[i].ID+2)
+        if(GameConfig.GRID[x][y] == players[i].ID+2)
         {
+
             // TODO:: change filling flag.
+
         }
         else
         {
+            // if(players[i].on_his_area)
+            // {
+            //
+            //     players[i].on_his_area = false;
+            //     players[i].was_on_his_area = true;
+            //
+            // }
 
-            grid[x][y] = players[i].ID + 1;
+            GameConfig.GRID[x][y] = players[i].ID + 1;
 
         }
     }
@@ -375,16 +351,122 @@ function fixDir()
 }
 
 // Check filling for every player.
+// Store start and end position.
 function checkFilling()
 {
+
     for ( let i in players)
     {
 
-        // Update status of filling when player leaves his area, status bit = 1;
-      //  players[i].updateFillingStatus();
+        let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
 
+        // Check if player left his own area.
+        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+1)
+            && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
+                ===players[i].ID+2))
+        {
+
+            // Should try to fill player area.
+            players[i].last_position_on_grid = new Position(player_pos_on_grid.x - players[i].dir.x,
+                player_pos_on_grid.y - players[i].dir.y);
+
+            // Player should record its path.
+            players[i].record_path = true;
+
+            // Record this step.
+            if(typeof players[i].path_vector[players[i].last_position_on_grid.y] === 'undefined')
+                players[i].path_vector[players[i].last_position_on_grid.y] = [];
+
+            if(!players[i].path_vector[players[i].last_position_on_grid.y].includes(players[i].last_position_on_grid.x))
+                players[i].path_vector[players[i].last_position_on_grid.y].push(players[i].last_position_on_grid.x)
+
+        }
+
+        // Check if player should fill his area.
+        else if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+2)
+        && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
+        ===players[i].ID+1))
+        {
+            if(!players[i].record_path)
+                return;
+            players[i].record_path = false;
+
+            // Should try to fill player area.
+            let path = players[i].tryToFill();
+            players[i].record_path = false;
+
+            // Record this step.
+            if(typeof players[i].path_vector[player_pos_on_grid.y] === 'undefined')
+                players[i].path_vector[player_pos_on_grid.y] = [];
+
+            if(!players[i].path_vector[player_pos_on_grid.y].includes(player_pos_on_grid.x))
+                players[i].path_vector[player_pos_on_grid.y].push(player_pos_on_grid.x);
+           // console.log(" path vector ", players[i].path_vector);
+
+            //console.log("path", path);
+
+            for( let obj in path)
+            {
+                let pos_x = path[obj].x;
+                let pos_y = path[obj].y;
+
+                if(typeof players[i].path_vector[pos_y] === 'undefined')
+                            players[i].path_vector[pos_y] = [];
+
+                if(!players[i].path_vector[pos_y].includes(pos_x))
+                    players[i].path_vector[pos_y].push(pos_x);
+
+            }
+
+            // for(let x in path)
+            // {
+            //     for( let y in path[x])
+            //     {
+            //         if(typeof players[i].path_vector[path[x][y]] === 'undefined')
+            //             players[i].path_vector[path[x][y]] = [];
+            //         players[i].path_vector[path[x][y]].push(x);
+            //     }
+            //
+            //
+            // }
+            let logger = [];
+            for(let y in players[i].path_vector)
+            {
+                for(let x in players[i].path_vector[y])
+                {
+                    //if(x<players[i].path_vector[y].length()-1)
+                   // let tempx_min =
+                    for(let tempx =players[i].path_vector[y][x]; tempx<players[i].path_vector[y].length-1; tempx++)
+                    {
+                        GameConfig.GRID[players[i].path_vector[y][x]][y]=players[i].ID+2;
+
+                        if(logger[[players[i].path_vector[y][x],y]]== null)
+                        {
+                            logger.push([players[i].path_vector[y][x],y]);
+                        }
+                    }
+                }
+            }
+            console.log("path -> ",path);
+            console.log("start pos  -> ",players[i].last_position_on_grid);
+            console.log("end pos  -> ",player_pos_on_grid);
+            console.log("all path -> ",players[i].path_vector);
+            console.log("all points -> ",logger);
+
+        }
+        else {
+
+            if(!players[i].dir.equal(players[i].last_dir))
+            {
+
+            players[i].filled = false;
+            if(typeof players[i].path_vector[player_pos_on_grid.y] === 'undefined')
+                players[i].path_vector[player_pos_on_grid.y] = [];
+
+            players[i].path_vector[player_pos_on_grid.y].push(player_pos_on_grid.x);
+            }
+        }
     }
-
 
 }
 
