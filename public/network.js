@@ -9,7 +9,7 @@ function initGame(data)
 {
 
     // Set initial grid.
-    grid = data["grid"];
+    GameConfig.GRID = data["grid"];
     //console.log(data);
     //console.log(data);
     for ( i in data["players"])
@@ -59,7 +59,7 @@ function initGame(data){
     // Set players count.
 
     // Set initial grid.
-    grid = data["grid"];
+    GameConfig.GRID = data["grid"];
     console.log(players[current_player_ID])
     // Start the game.
     startGame = true;
@@ -81,7 +81,7 @@ function onPlayerKeyPress(data)
       console.log(" Player key press -> ", data);
 
     // Update target player data.
-    players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
+  //  players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
 
 
     // Update target player position.
@@ -105,13 +105,14 @@ function onPlayerChangeDir(data)
     {
 
     // Update target player data.
+
     players[data["player_ID"]].dir.x = data["player_dir"][0];
     players[data["player_ID"]].dir.y = data["player_dir"][1];
     //console.log(" player dir ", players[data.player_ID].dir.x," , ", players[data.player_ID].dir.y);
     //console.log(players[data.player_ID].position.x / GameConfig.BLOCK_SIZE, players[data.player_ID].position.y / GameConfig.BLOCK_SIZE);
     // Update target player position.
-    players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
-    players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
+  //  players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
+   // players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
 
     }
     else
@@ -124,7 +125,7 @@ function onPlayerChangeDir(data)
 
     }
     // Update player KEY_PRESSED from dir.
-    players[data["player_ID"]].updateKeyPressFromDir();
+   // players[data["player_ID"]].updateKeyPressFromDir();
 
     // To avoid fixing direction more than one time per loop.
     //players[data["player_ID"]].direction_already_fixed = true;

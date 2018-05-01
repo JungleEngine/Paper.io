@@ -1,5 +1,4 @@
 var KEY_PRESSED;
-var grid = [];
 var aspect_ratio;
 var view_blocks_number = 40;
 var block_width;
@@ -12,7 +11,7 @@ var COLORS = [ 'empty', '#edeff4'
     // Blue Player.
     , '#0041a1', '#076bff', '#000066', '#002c6e'
     // Red Player.
-    , '#660000', '#ff3333', '#660000', '#ff8080' ];
+    , '#190000', '#ff3333', '#660000', '#ff8080' ];
 
 var socket;
 var currentTime = 0;
@@ -33,7 +32,7 @@ var game_started = false;
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io();
+        socket = io("http://localhost:8080");
 
         //try to send an action and wait for connected response
 
@@ -103,8 +102,17 @@ function draw() {
 
     //speed  =  block_size / 200 * (1000/frameRate())
 
-    if (startGame)
+    if (startGame )
     {
+
+        // If pause Game.
+        if(GameConfig.PAUSE)
+            return;
+
+        if(keyIsDown(87))
+            GameConfig.PAUSE = !GameConfig.PAUSE;
+
+
         // Clear screen.
         background(255);
 
@@ -118,7 +126,7 @@ function draw() {
 
         drawGrid();
 
-       // checkFilling();
+        checkFilling();
         finalize();
 
 
