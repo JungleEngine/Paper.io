@@ -78,14 +78,15 @@ function emitUpdatesToServer(updates){
 function onPlayerKeyPress(data)
 {
 
-   //console.log(" Player key press -> ", data);
+      console.log(" Player key press -> ", data);
 
     // Update target player data.
     players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
 
+
     // Update target player position.
-    //players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
-    //players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
+    players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
+    players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
 
     // Update player KEY_PRESSED from dir.
 
@@ -97,7 +98,7 @@ function onPlayerKeyPress(data)
 function onPlayerChangeDir(data)
 {
 
-    //console.log(" player change dir -> ", data)
+    console.log(" player change dir -> ", data);
 
     // If it is not a new player.
     if(data["player_ID"] in players)
@@ -106,8 +107,8 @@ function onPlayerChangeDir(data)
     // Update target player data.
     players[data["player_ID"]].dir.x = data["player_dir"][0];
     players[data["player_ID"]].dir.y = data["player_dir"][1];
-    console.log(" player dir ", players[data.player_ID].dir.x," , ", players[data.player_ID].dir.y);
-    console.log(players[data.player_ID].position.x / GameConfig.BLOCK_SIZE, players[data.player_ID].position.y / GameConfig.BLOCK_SIZE);
+    //console.log(" player dir ", players[data.player_ID].dir.x," , ", players[data.player_ID].dir.y);
+    //console.log(players[data.player_ID].position.x / GameConfig.BLOCK_SIZE, players[data.player_ID].position.y / GameConfig.BLOCK_SIZE);
     // Update target player position.
     players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
     players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;

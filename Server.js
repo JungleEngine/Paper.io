@@ -46,8 +46,16 @@ io.on('connection', (socket) => {
 
     });
 
+    socket.onclose = function(reason){
+        console.log(socket.id);
+        let rooms_keys = Object.keys(socket.rooms);
+        //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
+        removeDeadPlayer(rooms_keys[rooms_keys.length - 1],socket.id);
+        //console.log(socket.adapter.sids[socket.id]);
+        Object.getPrototypeOf(this).onclose.call(this,reason);
+    }
     socket.on('disconnect', (data) => {
-        console.log("Player disconnected ", io.nsps['/'].adapter.rooms);
+    //console.log("on disconnect");
     });
 
     socket.on('validate', (dir) => {
@@ -57,6 +65,11 @@ io.on('connection', (socket) => {
         let rooms_keys = Object.keys(socket.rooms);
         let player = rooms[rooms_keys[rooms_keys.length - 1]].players[socket.id];
 
+        if(player==null)
+        {
+            console.log("unknown player sending a message, either dead player or hacking");
+            return;
+        }
         //console.log("Key pressed: ", new_dir_x, new_dir_y);
         //console.log("Player that pressed key: ", player);
 
@@ -243,43 +256,66 @@ function addPlayer(room_name, socket_id) {
  *
  * @param room_name
  */
+var dummyVariable=null;
 function simulate(room_name) {
 
     function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx) {
 
+        //this is to keep track of current cell when hopping over more than a cell at a time
+        let currentCellPosition={x:last_pos.x,y:last_pos.y};
+
+        let cell;
+
         while (delta > 0) {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
-            let cell = rooms[room_name].grid[Math.round(last_pos.x + (0.5 * player.dir_x))][Math.round(last_pos.y + (0.5 * player.dir_x))];
-            if (delta < 1) {
+            if(player.dir_x != 0)
+                cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
+            else cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
+
+
+            //if (delta < 1) {
                 // Put head
-                cell = player.ID;
-            }
-            else { // Player jumped more than 1 cell
+              //  cell = player.ID;
+            //}
+           // else { // Player jumped more than 1 cell
+
 
                 // Change position according to moving direction
-                if (player_pos > last_pos_x_or_y) {
-                    last_pos_x_or_y++;
+                if(delta>1) {
+                    if (player_pos > last_pos_x_or_y) {
+                        last_pos_x_or_y++;
 
-                } else {
-                    last_pos_x_or_y--;
+                    } else {
+                        last_pos_x_or_y--;
+                    }
                 }
 
-                if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
-                    // Die
-                    removeDeadPlayer(room_name, indx);
-                }
-                else if (cell == player.ID + 2) {     // Own block
-                    //TODO: Fill path
-                }
-                else if (cell == 0 || cell % 4 == 0) {     // Empty || block
-                    // Put tail
-                    cell = player.ID + 1;
-                }
-                else {
-                    // Kill
-                    removeDeadPlayer(room_name, getSocketIDfromPlayerID(player.ID));
-                }
-            }
+                    if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
+                        // Dies
+                        console.log("Player Died!!");
+                        removeDeadPlayer(room_name, indx);
+                    }
+                    else if (cell == player.ID + 2) {     // Own block
+                        //TODO: Fill path
+                    }
+                    else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+                        // Put tail
+                        cell = player.ID + 1;
+                    }
+                    else if(cell!=player.ID) {
+                        let killedPlayerID;
+                        if(cell%4==2)//other player id
+                        {
+                            killedPlayerID=cell;
+                        }else {
+                            killedPlayerID = cell - 1;
+                        }
+                        // Kill
+                        removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID,room_name));
+                        if(delta<1) {
+                            cell = player.ID;
+                        }
+                    }
             delta--;
         }
     }
@@ -297,6 +333,7 @@ function simulate(room_name) {
         // First run
         if (!player.last_time_stamp) {
             player.last_time_stamp = time;
+            //continue;
         }
 
         let delta_time = (time - player.last_time_stamp) / 1000000000;
@@ -306,16 +343,40 @@ function simulate(room_name) {
         player.pos_x += speed * player.dir_x * delta_time;
         player.pos_y += speed * player.dir_y * delta_time;
 
+        if(dummyVariable==null) {
+             dummyVariable="test";
+            setInterval(function () {
+                let x=player.pos_x;
+                let y=player.pos_y;
+                let dir_y=player.dir_y;
+                let dir_x=player.dir_x;
+                console.log("Player position x: ", x);
+                console.log("Player position y: ", y);
+                console.log("Player direction x: ", player.dir_x);
+                console.log("Player direction y: ", player.dir_y);
+            }, 2000);
+        }
+
+
+        // Skipped cells in x and in y
+        let x_delta = Math.abs(player.pos_x - last_pos.x);
+        let y_delta = Math.abs(player.pos_y - last_pos.y);
+
+        // Move on skipped cells in x and in y
+        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
+        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
 
         // If direction changed
         if (player.dir_x != player.next_dir_x || player.dir_y != player.next_dir_y) {
             // Player crossed cell horizontally
             if (player.dir_x != 0 && Math.round(0.5 + last_pos.x) != Math.round(0.5 + player.pos_x)) {
                 if (player.dir_x == 1) {    // Moving right
-                    player.pos_x = Math.floor(player.pos_x) + 0.5;
+                    // noinspection JSSuspiciousNameCombination
+                    player.pos_y = Math.floor(player.pos_y) + 0.5;
                 }
                 else {      // Moving left
-                    player.pos_x = Math.ceil(player.pos_x) - 0.5;
+                    // noinspection JSSuspiciousNameCombination
+                    player.pos_y = Math.ceil(player.pos_y) - 0.5;
                 }
                 player.dir_x = player.next_dir_x;
                 player.dir_y = player.next_dir_y;
@@ -323,10 +384,10 @@ function simulate(room_name) {
             // Player crossed cell vertically
             if (player.dir_y != 0 && Math.round(0.5 + last_pos.y) != Math.round(0.5 + player.pos_y)) {
                 if (player.dir_y == 1) {    // Moving down
-                    player.pos_y = Math.floor(player.pos_y) + 0.5;
+                    player.pos_x = Math.floor(player.pos_x) + 0.5;
                 }
                 else {  // Moving up
-                    player.pos_y = Math.ceil(player.pos_y) - 0.5;
+                    player.pos_x = Math.ceil(player.pos_x) - 0.5;
                 }
                 player.dir_x = player.next_dir_x;
                 player.dir_y = player.next_dir_y;
@@ -336,19 +397,13 @@ function simulate(room_name) {
                 //console.log(" position ", player.pos_x,player.pos_y);
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
-                    "player_dir": [player.dir_x, player.dir_y],
+                    "player_dir": [player.next_dir_x, player.next_dir_y],
                     "player_pos": [player.pos_x, player.pos_y]
                 });
             }
         }
 
-        // Skipped cells in x and in y
-        let x_delta = Math.abs(player.pos_x - last_pos.x);
-        let y_delta = Math.abs(player.pos_y - last_pos.y);
 
-        // Move on skipped cells in x and in y
-        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
-        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
 
     }
 }
@@ -364,14 +419,15 @@ function removeDeadPlayer(room_name, player) {
     console.log("Player " + player + " died!");
 
     playerID = rooms[room_name].players[player].ID;
-
+    console.log(rooms[room_name].players[player]);
+    console.log(playerID);
     // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {
-            if (grid[i][j] == playerID ||
-                grid[i][j] == playerID + 1 ||
-                grid[i][j] == playerID + 2) {
-                grid[i][j] = 0;
+            if (rooms[room_name].grid[i][j] == playerID ||
+                rooms[room_name].grid[i][j] == playerID + 1 ||
+                rooms[room_name].grid[i][j] == playerID + 2) {
+                rooms[room_name].grid[i][j] = 0;
             }
         }
     }

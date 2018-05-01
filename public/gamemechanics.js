@@ -71,7 +71,7 @@ function validateKeyPress()
     }
 
 }
-
+var dummyVariable=null;
 function handleMovement()
 {
 
@@ -129,7 +129,15 @@ function handleMovement()
             y = Math.round(players[i].position.y / block_size);
 
         }
-
+        if(dummyVariable==null) {
+            dummyVariable="test";
+        /*setInterval(function () {
+            let int_x=players[i].position.x / block_size;
+            let int_y=players[i].position.y / block_size;
+            console.log("Player position x: " , int_x," Player position y: " , int_y);
+            console.log("Player direction: " , players[i].dir);
+        },2000);*/
+            }
         // Hit your tail or border or = lose.
         if (grid[x][y] == 1 ||  grid[x][y] == players[i].ID + 1 )
         {
@@ -143,7 +151,7 @@ function handleMovement()
         // Check killing another client ( block ).
         else if ( ( grid[x][y] - 2 ) % 4 == 0)
         {
-            //  To remove player from grid later, head collision.
+            // To remove player from grid later, head collision.
             players_to_remove.push(grid[x][y])
 
         }

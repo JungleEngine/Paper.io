@@ -35,33 +35,28 @@ class Player {
     }
 
     // Update key press from dir.
-    updateKeyPressFromDir()
-    {
+    updateKeyPressFromDir() {
 
 
-        if (this.dir.equal(new Dir(1, 0)))
-        {
+        if (this.dir.equal(new Dir(1, 0))) {
 
             this.KEY_PRESSED = 'right';
 
         }
 
-        if (this.dir.equal(new Dir(-1, 0)))
-        {
+        if (this.dir.equal(new Dir(-1, 0))) {
 
             this.KEY_PRESSED = 'left';
 
         }
 
-        if (this.dir.equal(new Dir(0, 1)))
-        {
+        if (this.dir.equal(new Dir(0, 1))) {
 
             this.KEY_PRESSED = 'down';
 
         }
 
-        if (this.dir.equal(new Dir(0, -1)))
-        {
+        if (this.dir.equal(new Dir(0, -1))) {
 
             this.KEY_PRESSED = 'up';
 
@@ -70,34 +65,29 @@ class Player {
     }
 
     // Update key press from a given dir.
-    updatePlayerKeyPressFromDir(dir_x, dir_y)
-    {
+    updatePlayerKeyPressFromDir(dir_x, dir_y) {
 
         let dir = new Dir(dir_x, dir_y);
 
-        if (dir.equal(new Dir(1, 0)))
-        {
+        if (dir.equal(new Dir(1, 0))) {
 
             this.KEY_PRESSED = 'right';
 
         }
 
-        if (dir.equal(new Dir(-1, 0)))
-        {
+        if (dir.equal(new Dir(-1, 0))) {
 
             this.KEY_PRESSED = 'left';
 
         }
 
-        if (dir.equal(new Dir(0, 1)))
-        {
+        if (dir.equal(new Dir(0, 1))) {
 
             this.KEY_PRESSED = 'down';
 
         }
 
-        if (dir.equal(new Dir(0, -1)))
-        {
+        if (dir.equal(new Dir(0, -1))) {
 
             this.KEY_PRESSED = 'up';
 
@@ -106,38 +96,32 @@ class Player {
     }
 
     // Update key press from dir.
-    updateDirFromKeyPress()
-    {
+    updateDirFromKeyPress() {
 
-        if ( this.position.x % GameConfig.BLOCK_SIZE < GameConfig.SPEED && this.position.y % GameConfig.BLOCK_SIZE < GameConfig.SPEED)
-        {
+        if (this.position.x % GameConfig.BLOCK_SIZE < GameConfig.SPEED && this.position.y % GameConfig.BLOCK_SIZE < GameConfig.SPEED) {
 
-            if (this.KEY_PRESSED == 'right')
-            {
+            if (this.KEY_PRESSED == 'right') {
 
                 this.dir.x = 1;
                 this.dir.y = 0;
 
             }
 
-            if (this.KEY_PRESSED == 'left')
-            {
+            if (this.KEY_PRESSED == 'left') {
 
                 this.dir.x = -1;
                 this.dir.y = 0;
 
             }
 
-            if (this.KEY_PRESSED == 'up')
-            {
+            if (this.KEY_PRESSED == 'up') {
 
                 this.dir.x = 0;
                 this.dir.y = -1;
 
             }
 
-            if (this.KEY_PRESSED == 'down')
-            {
+            if (this.KEY_PRESSED == 'down') {
 
                 this.dir.x = 0;
                 this.dir.y = 1;
