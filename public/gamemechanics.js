@@ -262,7 +262,7 @@ function updateGrid() {
 
         // Check if grid color is my block color -> leave it.
         // Tail color.
-        if(GameConfig.GRID[x][y] == players[i].ID+2)
+        if(GameConfig.GRID[x][y] === players[i].ID+2)
         {
 
             // TODO:: change filling flag.
@@ -358,13 +358,23 @@ function checkFilling()
     for ( let i in players)
     {
 
+
         let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
+        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+2))
+        {
+
+
+            console.log("my ground.");
+            console.log("dir -> ", players[i].dir);
+
+        }
 
         // Check if player left his own area.
         if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+1)
             && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
-                ===players[i].ID+2))
+                ===players[i].ID+2) && !players[i].record_path)
         {
+            console.log("player leaved grid ");
 
             // Should try to fill player area.
             players[i].last_position_on_grid = new Position(player_pos_on_grid.x - players[i].dir.x,
@@ -377,18 +387,32 @@ function checkFilling()
             if(typeof players[i].path_vector[players[i].last_position_on_grid.y] === 'undefined')
                 players[i].path_vector[players[i].last_position_on_grid.y] = [];
 
+            // Push player last position on grid.
             if(!players[i].path_vector[players[i].last_position_on_grid.y].includes(players[i].last_position_on_grid.x))
-                players[i].path_vector[players[i].last_position_on_grid.y].push(players[i].last_position_on_grid.x)
+                players[i].path_vector[players[i].last_position_on_grid.y].push(players[i].last_position_on_grid.x);
+
+
+            // Record this step.
+            if(typeof players[i].path_vector[player_pos_on_grid.y] === 'undefined')
+                players[i].path_vector[player_pos_on_grid.y] = [];
+
+            // Push player position now.
+            if(!players[i].path_vector[player_pos_on_grid.y].includes(player_pos_on_grid.x))
+                players[i].path_vector[player_pos_on_grid.y].push(player_pos_on_grid.x);
+
 
         }
 
         // Check if player should fill his area.
         else if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+2)
-        && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
-        ===players[i].ID+1))
+        && ((GameConfig.GRID[player_pos_on_grid.x - players[i].last_dir.x][player_pos_on_grid.y - players[i].last_dir.y]
+        ===players[i].ID+1) || true))
         {
+
             if(!players[i].record_path)
                 return;
+            console.log("player is back to grid");
+
             players[i].record_path = false;
 
             // Should try to fill player area.
@@ -430,7 +454,7 @@ function checkFilling()
             //
             // }
             let logger = [];
-            for(let y in players[i].path_vector)
+            /*for(let y in players[i].path_vector)
             {
                 for(let x in players[i].path_vector[y])
                 {
@@ -446,24 +470,74 @@ function checkFilling()
                         }
                     }
                 }
+            }*/
+
+            // Filling.
+            for( let y in players[i].path_vector)
+            {
+
+                let x_arr = players[i].path_vector[y];
+                let min_x;
+
+                x_arr.sort();
+                for(let tempx = 0;  tempx <x_arr.length -1; tempx+=2)
+                {
+
+
+                    let min_x = Math.min(x_arr[tempx], x_arr[tempx+1]);
+                    let max_x = Math.max(x_arr[tempx], x_arr[tempx+1]);
+
+                    if(min_x === max_x -1)
+                    {
+
+                        GameConfig.GRID[min_x][y] = players[i].ID + 2;
+                        tempx--;
+                        continue;
+
+                    }
+                    // Fill between two points.
+                    for(let curr_x = min_x ; curr_x <= max_x; curr_x++)
+                    {
+
+                        GameConfig.GRID[curr_x][y] = players[i].ID + 2;
+                    }
+
+
+                }
+
+                // If odd number of x-values then color the last one.
+                if(x_arr.length%2!==0 || true)
+                {
+
+                    GameConfig.GRID[x_arr[x_arr.length-1]][y] = players[i].ID+2;
+
+                }
+
+
             }
-            console.log("path -> ",path);
-            console.log("start pos  -> ",players[i].last_position_on_grid);
-            console.log("end pos  -> ",player_pos_on_grid);
-            console.log("all path -> ",players[i].path_vector);
-            console.log("all points -> ",logger);
+            //console.log("path -> ",path);
+            // console.log("start pos  -> ",players[i].last_position_on_grid);
+            // console.log("end pos  -> ",player_pos_on_grid);
+            // console.log("all path -> ",players[i].path_vector);
+            //console.log("all points -> ",logger);
+
+            // Clear all arrays.
+           players[i].path_vector = [];
 
         }
         else {
 
-            if(!players[i].dir.equal(players[i].last_dir))
+            // True for testing .
+            if(!(players[i].dir.equal(players[i].last_dir)) || true )
             {
 
             players[i].filled = false;
             if(typeof players[i].path_vector[player_pos_on_grid.y] === 'undefined')
                 players[i].path_vector[player_pos_on_grid.y] = [];
 
-            players[i].path_vector[player_pos_on_grid.y].push(player_pos_on_grid.x);
+                if(!players[i].path_vector[player_pos_on_grid.y].includes(player_pos_on_grid.x))
+                    players[i].path_vector[player_pos_on_grid.y].push(player_pos_on_grid.x);
+
             }
         }
     }

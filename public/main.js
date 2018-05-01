@@ -11,7 +11,7 @@ var COLORS = [ 'empty', '#edeff4'
     // Blue Player.
     , '#0041a1', '#076bff', '#000066', '#002c6e'
     // Red Player.
-    , '#660000', '#ff3333', '#660000', '#ff8080' ];
+    , '#190000', '#ff3333', '#660000', '#ff8080' ];
 
 var socket;
 var currentTime = 0;
@@ -102,8 +102,17 @@ function draw() {
 
     //speed  =  block_size / 200 * (1000/frameRate())
 
-    if (startGame)
+    if (startGame )
     {
+
+        // If pause Game.
+        if(GameConfig.PAUSE)
+            return;
+
+        if(keyIsDown(87))
+            GameConfig.PAUSE = !GameConfig.PAUSE;
+
+
         // Clear screen.
         background(255);
 
