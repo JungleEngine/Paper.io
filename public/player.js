@@ -156,37 +156,39 @@ class Player {
     // Update key press from dir.
     updateDirFromKeyPress() {
 
-        if (this.position.x % GameConfig.BLOCK_SIZE < GameConfig.SPEED && this.position.y % GameConfig.BLOCK_SIZE < GameConfig.SPEED) {
 
+            if(this.next_dir==null)
+            {
+                this.next_dir={"x":1,"y":0};
+            }
             if (this.KEY_PRESSED == 'right') {
 
-                this.dir.x = 1;
-                this.dir.y = 0;
+                this.next_dir.x = 1;
+                this.next_dir.y = 0;
 
             }
 
             if (this.KEY_PRESSED == 'left') {
 
-                this.dir.x = -1;
-                this.dir.y = 0;
+                this.next_dir.x = -1;
+                this.next_dir.y = 0;
 
             }
 
             if (this.KEY_PRESSED == 'up') {
 
-                this.dir.x = 0;
-                this.dir.y = -1;
+                this.next_dir.x = 0;
+                this.next_dir.y = -1;
 
             }
 
             if (this.KEY_PRESSED == 'down') {
 
-                this.dir.x = 0;
-                this.dir.y = 1;
+                this.next_dir.x = 0;
+                this.next_dir.y = 1;
 
             }
 
-        }
 
     }
 

@@ -15,25 +15,121 @@ function globalize() {
     return [player.position.x - x_distance, player.position.y - y_distance];
 }
 
+var dummyVariable=null;
+var keyboardLocked=false;
+function simulate() {
+    function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx) {
+
+
+        let cell;
+
+        while (delta > 0) {
+            //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir.x, "---------");
+            if(player.dir.x !== 0) {
+                cell =   GameConfig.GRID[Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
+                    [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+            } else {
+                cell =   GameConfig.GRID[Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
+                    [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+            }
+
+
+            // Change position according to moving direction
+            if(delta>GameConfig.BLOCK_SIZE) {
+                if (player_pos > last_pos_x_or_y) {
+                    last_pos_x_or_y+=GameConfig.BLOCK_SIZE;
+
+                } else {
+                    last_pos_x_or_y-=GameConfig.BLOCK_SIZE;
+                }
+            }
+
+            if (cell === 1 || cell === player.ID + 1) {    // Border || Own tail
+                // Dies
+                console.log("Player Died!!");
+               // removeDeadPlayer(player.ID);
+            }
+            else if (cell == player.ID + 2) {     // Own block
+                //TODO: Fill path
+            }
+            else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+                // Put tail
+                cell = player.ID + 1;
+            }
+            else if(cell!=player.ID) {
+                let killedPlayerID;
+                if(cell%4==2)//other player id
+                {
+                    killedPlayerID=cell;
+                }else {
+                    killedPlayerID = cell - 1;
+                }
+                // Kill
+                removeDeadPlayer(killedPlayerID);
+                if(delta<1) {
+                    cell = player.ID;
+                }
+            }
+            delta-=GameConfig.BLOCK_SIZE;
+        }
+    }
+    // Validate player action.
+    validateKeyPress();
+    for(let indx of Object.keys(players)){
+
+
+
+        let player = players[indx];
+        player.updateDirFromKeyPress();
+        let last_pos = {"x": player.position.x, "y": player.position.y};
+
+        player.position.x += player.dir.x * GameConfig.SPEED;
+        player.position.y += player.dir.y * GameConfig.SPEED;
+
+        if(dummyVariable==null) {
+            dummyVariable="test";
+            setInterval(function () {
+                if(GameConfig.PAUSE)
+                    return;
+                let int_x=player.position.x / GameConfig.BLOCK_SIZE;
+                let int_y=player.position.y / GameConfig.BLOCK_SIZE;
+                console.log("Player position x: " , int_x," Player position y: " , int_y);
+                console.log("Player direction: " , player.dir);
+            },2000);
+        }
+
+        // Change direction when reaching the end of a cell.
+        fixDir(player,last_pos);
+
+        // Skipped cells in x and in y
+        let x_delta = Math.abs(player.position.x - last_pos.x);
+        let y_delta = Math.abs(player.position.y - last_pos.y);
+        // Move on skipped cells in x and in y
+        MoveOnCells(x_delta, last_pos.x, last_pos, player.position.x, player, indx);
+        MoveOnCells(y_delta, last_pos.y, last_pos, player.position.y, player, indx);
+
+
+
+    }
+}
 
 function validateKeyPress()
 {
+    if(keyboardLocked==true)
+        return;
 
     let x = null;
     let y = null;
-    if (keyIsDown(RIGHT_ARROW) && players[current_player_ID].KEY_PRESSED != 'left'
-        && players[current_player_ID].KEY_PRESSED != 'right')
-    {
+    if (keyCode==RIGHT_ARROW && players[current_player_ID].KEY_PRESSED != 'left'
+        && players[current_player_ID].KEY_PRESSED != 'right') {
 
         players[current_player_ID].KEY_PRESSED = 'right';
         x = 1;
         y = 0;
 
     }
-
-    else if (keyIsDown(LEFT_ARROW) && players[current_player_ID].KEY_PRESSED != 'right'
-        && players[current_player_ID].KEY_PRESSED != 'left')
-    {
+    else if (keyCode==LEFT_ARROW && players[current_player_ID].KEY_PRESSED != 'right'
+        && players[current_player_ID].KEY_PRESSED != 'left') {
 
         players[current_player_ID].KEY_PRESSED = 'left';
         x = -1;
@@ -41,9 +137,8 @@ function validateKeyPress()
 
     }
 
-    else if (keyIsDown(UP_ARROW) && players[current_player_ID].KEY_PRESSED != 'down' &&
-        players[current_player_ID].KEY_PRESSED != 'up')
-    {
+    else if (keyCode==UP_ARROW && players[current_player_ID].KEY_PRESSED != 'down' &&
+        players[current_player_ID].KEY_PRESSED != 'up') {
 
         players[current_player_ID].KEY_PRESSED = 'up';
         x = 0;
@@ -51,9 +146,8 @@ function validateKeyPress()
 
     }
 
-    else if (keyIsDown(DOWN_ARROW) && players[current_player_ID].KEY_PRESSED != 'up' &&
-        players[current_player_ID].KEY_PRESSED != 'down')
-    {
+    else if (keyCode==DOWN_ARROW && players[current_player_ID].KEY_PRESSED != 'up' &&
+        players[current_player_ID].KEY_PRESSED != 'down') {
 
         players[current_player_ID].KEY_PRESSED = 'down';
         x = 0;
@@ -62,137 +156,32 @@ function validateKeyPress()
     }
 
     if (x != null && y != null) {
-
+        keyboardLocked=true;
+        setTimeout(function () {
+            keyboardLocked=false;
+        }, 600);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
         updates["player_pos_normalized"] = players[current_player_ID].position / block_size;
-        emitUpdatesToServer(updates);
+       emitUpdatesToServer(updates);
     }
 
 }
-var dummyVariable=null;
-function handleMovement()
+
+
+function removeDeadPlayer(playerID)
 {
 
-    // Players to be removed.
-    players_to_remove = [];
+        delete players[playerID];
 
-    // Validate player action.
-    validateKeyPress();
-
-    for ( let i in players )
-    {
-
-        // Change direction when reaching the end of a cell.
-        players[i].updateDirFromKeyPress();
-
-        players[i].position.x += players[i].dir.x * GameConfig.SPEED;
-        players[i].position.y += players[i].dir.y * GameConfig.SPEED;
-        // -------------------- Checking for loss ------------------------------
-
-        let x = 0;
-        let y = 0;
-
-        // players[i] moving down.
-        if (players[i].dir.equal(new Dir(0, 1)))
-        {
-
-            x = Math.round(players[i].position.x / block_size);
-            y = Math.ceil(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving up.
-        if (players[i].dir.equal(new Dir(0, -1)))
-        {
-
-            x = Math.round(players[i].position.x / block_size);
-            y = Math.floor(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving left.
-        if (players[i].dir.equal(new Dir(1, 0)))
-        {
-
-            x = Math.ceil(players[i].position.x / block_size);
-            y = Math.round(players[i].position.y / block_size);
-
-        }
-
-        // players[i] moving right.
-        if (players[i].dir.equal(new Dir(-1, 0)))
-        {
-
-            x = Math.floor(players[i].position.x / block_size);
-            y = Math.round(players[i].position.y / block_size);
-
-        }
-        if(dummyVariable==null) {
-            dummyVariable="test";
-        /*setInterval(function () {
-            let int_x=players[i].position.x / block_size;
-            let int_y=players[i].position.y / block_size;
-            console.log("Player position x: " , int_x," Player position y: " , int_y);
-            console.log("Player direction: " , players[i].dir);
-        },2000);*/
-            }
-        // Hit your tail or border or = lose.
-        if (GameConfig.GRID[x][y] == 1 ||  GameConfig.GRID[x][y] == players[i].ID + 1 )
-        {
-
-            //window.alert('Game over!');
-            //socket.disconnect();
-            //location.reload();
-
-        }
-
-        // Check killing another client ( block ).
-        else if ( ( GameConfig.GRID[x][y] - 2 ) % 4 == 0)
-        {
-            //  To remove player from GameConfig.GRID later, head collision.
-            players_to_remove.push(GameConfig.GRID[x][y])
-
-        }
-
-        // TO remove player from GameConfig.GRID later, tail collision.
-        else if ( ( GameConfig.GRID[x][y] - 3 ) % 4 == 0)
-        {
-            //  To remove player from GameConfig.GRID later.
-            players_to_remove.push(GameConfig.GRID[x][y] - 1)
-
-        }
-
-
-    }
-
-    // Remove dead players from GameConfig.GRID.
-    // removeDeadPlayers(players_to_remove);
-}
-
-function removeDeadPlayers(dead_players)
-{
-
-    // Remove dead players from players array.
-    for( let i = 0; i < dead_players.length; i++)
-    {
-
-        delete players[dead_players[i]];
-
-    }
-
-    //console.log(dead_players.length);
 
     for( let i = grid_start; i < grid_end; i++)
-        for( let j = grid_start; j < grid_end; j++)
-        {
+        for( let j = grid_start; j < grid_end; j++) {
             // If current cell is of a dead player then clear it.
-            if(    dead_players.indexOf(GameConfig.GRID[i][j]   ) != -1
-                || dead_players.indexOf(GameConfig.GRID[i][j] - 1 ) != -1
-                || dead_players.indexOf(GameConfig.GRID[i][j] - 2  ) != -1 )
-            {
-
+            if(    GameConfig.GRID[i][j]==playerID
+                || GameConfig.GRID[i][j]==playerID+1
+                || GameConfig.GRID[i][j]==playerID+2) {
                 GameConfig.GRID[i][j] = 0;
 
             }
@@ -293,70 +282,57 @@ function updateGrid() {
 }
 
 
-function fixDir()
-{
 
-    for ( let i in players)
-    {
+function fixDir(player,last_pos){
 
-        // Do not fix direction if the server already fixed it before.
-        if(players[i].direction_already_fixed)
-        {
+    let last_head = {};
 
-            players[i].direction_already_fixed = false;
-            continue;
+    last_head.x=(last_pos.x+(GameConfig.BLOCK_SIZE * (0.5*player.dir.x))) / GameConfig.BLOCK_SIZE;
+    last_head.y=(last_pos.y+(GameConfig.BLOCK_SIZE * (0.5*player.dir.y))) / GameConfig.BLOCK_SIZE;
+
+    let head={};
+
+    head.x=(player.position.x+(GameConfig.BLOCK_SIZE * (0.5*player.dir.x))) / GameConfig.BLOCK_SIZE;
+    head.y=(player.position.y+(GameConfig.BLOCK_SIZE * (0.5*player.dir.y))) / GameConfig.BLOCK_SIZE;
+    // If direction changed
+    if (player.dir.x !== player.next_dir.x || player.dir.y !== player.next_dir.y) {
+
+
+        if (
+
+            //Crossed Cell Right
+            (player.dir.x === 1 && Math.floor(last_head.x) !== Math.floor(head.x)) ||
+            //Crossed Cell Left
+            (player.dir.x === -1 && Math.ceil(last_head.x) !== Math.ceil(head.x)) ||
+            //Crossed Cell Up
+            (player.dir.y === 1 && Math.floor(last_head.y) !== Math.floor(head.y)) ||
+            //Crossed Cell Down
+            (player.dir.y === -1 && Math.ceil(last_head.y) !== Math.ceil(head.y)) ){
+
+
+            //Fix head on the cell
+
+            if(player.dir.x!==0) {
+                head.x = Math.round(head.x) + (0.5 * player.dir.x);
+            }else {
+                head.y = Math.round(head.y) + (0.5 * player.dir.y);
+            }
+
+            //Adjust head position to match the new direction
+            head.x += player.next_dir.x * 0.5 - player.dir.x * 0.5;
+            head.y +=  player.next_dir.y * 0.5 - player.dir.y * 0.5;
+
+
+            //Set direction to new direction
+            player.dir.x = player.next_dir.x;
+            player.dir.y = player.next_dir.y;
+            player.position.x= GameConfig.BLOCK_SIZE*(head.x -  0.5*player.next_dir.x);
+            player.position.y= GameConfig.BLOCK_SIZE*(head.y -  0.5*player.next_dir.y);
         }
-        if (!players[i].dir.equal(players[i].last_dir))
-        {
-
-
-            let x = 0;
-            let y = 0;
-
-            // Player moving down.
-            if (players[i].dir.equal(new Dir(0, 1)))
-            {
-
-                x = Math.round(players[i].position.x / block_size);
-                y = Math.floor(players[i].position.y / block_size);
-
-            }
-
-            // players[i] moving up.
-            if (players[i].dir.equal(new Dir(0, -1)))
-            {
-
-                x = Math.round(players[i].position.x / block_size);
-                y = Math.ceil(players[i].position.y / block_size);
-
-            }
-
-            // players[i] moving left.
-            if (players[i].dir.equal(new Dir(1, 0)))
-            {
-
-                x = Math.floor(players[i].position.x / block_size);
-                y = Math.round(players[i].position.y / block_size);
-
-            }
-
-            // players[i] moving right.
-            if (players[i].dir.equal(new Dir(-1, 0)))
-            {
-
-                x = Math.ceil(players[i].position.x / block_size);
-                y = Math.round(players[i].position.y / block_size);
-
-            }
-
-            players[i].position.x = x * block_size;
-            players[i].position.y = y * block_size;
-
-        }
-
     }
 
 }
+
 
 // Check filling for every player.
 // Store start and end position.

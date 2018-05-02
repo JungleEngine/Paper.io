@@ -97,30 +97,28 @@ function initializeLocal() {
 }
 
 function draw() {
-    GameConfig.UPDATE_SPEED(getFrameRate(), 3);
+    GameConfig.UPDATE_SPEED(getFrameRate(), 5);
     // Make speed adapts to change in frame rate
 
     //speed  =  block_size / 200 * (1000/frameRate())
 
-    if (startGame )
-    {
+    if (startGame ) {
 
         // If pause Game.
         if(GameConfig.PAUSE)
             return;
 
-        if(keyIsDown(87))
+        if(keyIsDown(87)) {
             GameConfig.PAUSE = !GameConfig.PAUSE;
+            pauseServer();
+        }
 
 
         // Clear screen.
         background(255);
 
-        // Change players positions.
-        handleMovement();
 
-
-        fixDir();
+        simulate();
 
         updateGrid();
 

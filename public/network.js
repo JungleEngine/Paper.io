@@ -66,10 +66,14 @@ function initGame(data){
 
 }*/
 
+function pauseServer(){
+    socket.emit("pause");
+}
 
 // Emit updates to server.
 function emitUpdatesToServer(updates){
 
+    console.log(updates);
     // Emit client action to server to be validated.
     socket.emit("validate", updates);
 
@@ -111,8 +115,8 @@ function onPlayerChangeDir(data)
     //console.log(" player dir ", players[data.player_ID].dir.x," , ", players[data.player_ID].dir.y);
     //console.log(players[data.player_ID].position.x / GameConfig.BLOCK_SIZE, players[data.player_ID].position.y / GameConfig.BLOCK_SIZE);
     // Update target player position.
-  //  players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
-   // players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
+   players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
+   players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
 
     }
     else
