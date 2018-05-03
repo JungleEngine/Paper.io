@@ -9,7 +9,7 @@ var player;
 
 var COLORS = [ 'empty', '#edeff4'
     // Blue Player.
-    , '#0041a1', '#076bff', '#000066', '#002c6e'
+    , '#0041a1', '#076bff', '#d81178 ', '#002c6e'
     // Red Player.
     , '#190000', '#ff3333', '#660000', '#ff8080' ];
 
@@ -45,7 +45,7 @@ function setup() {
             currentTime = date.getMilliseconds();
 
 
-            socket.on("player_key_press", onPlayerKeyPress);
+//            socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
 
             //delete the previous button

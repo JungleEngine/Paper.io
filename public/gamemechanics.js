@@ -30,10 +30,10 @@ function simulate() {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir.x, "---------");
             if(player.dir.x !== 0) {
                 cell =   GameConfig.GRID[Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
-                    [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+                    [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))][0];
             } else {
                 cell =   GameConfig.GRID[Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
-                    [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+                    [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))][0];
             }
 
 
@@ -162,7 +162,7 @@ function validateKeyPress()
         keyboardLocked=true;
         setTimeout(function () {
             keyboardLocked=false;
-        }, 400);
+        }, 200);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
@@ -185,10 +185,10 @@ function removeDeadPlayer(playerID)
     for( let i = grid_start; i < grid_end; i++)
         for( let j = grid_start; j < grid_end; j++) {
             // If current cell is of a dead player then clear it.
-            if(    GameConfig.GRID[i][j]==playerID
-                || GameConfig.GRID[i][j]==playerID+1
-                || GameConfig.GRID[i][j]==playerID+2) {
-                GameConfig.GRID[i][j] = 0;
+            if(    GameConfig.GRID[i][j][0]==playerID
+                || GameConfig.GRID[i][j][0]==playerID+1
+                || GameConfig.GRID[i][j][0]==playerID+2) {
+                GameConfig.GRID[i][j][0] = 0;
 
             }
         }
@@ -208,11 +208,11 @@ function drawGrid()
     for (i = x_window_start - 1; i <= x_window_start + number_of_blocks_width; ++i) {
         for (j = y_window_start - 1; j <= y_window_start + number_of_blocks_height; ++j) {
             //console.log(" window_start " , x_window_start,"number  of blocks",number_of_blocks_width);
-            if (GameConfig.GRID[i][j] != 0) {
+            if (GameConfig.GRID[i][j][0] !== 0) {
 
 
                 // Set color for filling.
-                fill(color(COLORS[GameConfig.GRID[i][j]]));
+                fill(color(COLORS[GameConfig.GRID[i][j][0]]));
 
                 // Convert index in GameConfig.GRID to global pixel location.
                 player_global_pixel_position_x = i * block_size;
@@ -265,7 +265,7 @@ function updateGrid() {
 
         // Check if grid color is my block color -> leave it.
         // Tail color.
-        if(GameConfig.GRID[x][y] === players[i].ID+2)
+        if(GameConfig.GRID[x][y][0] === players[i].ID+2)
         {
 
             // TODO:: change filling flag.
@@ -281,7 +281,7 @@ function updateGrid() {
             //
             // }
 
-            GameConfig.GRID[x][y] = players[i].ID + 1;
+            GameConfig.GRID[x][y][0] = players[i].ID + 1;
 
         }
     }
@@ -361,7 +361,7 @@ function checkFilling()
 
 
         let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
-        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+2))
+        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID+2))
         {
 
 
@@ -371,11 +371,11 @@ function checkFilling()
         }
 
         // Check if player left his own area.
-        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+1)
-            && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
+        if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID+1)
+            && (GameConfig.GRID[player_pos_on_grid.x - players[i].last_dir.x][player_pos_on_grid.y - players[i].last_dir.y][0]
                 ===players[i].ID+2) && !players[i].record_path)
         {
-            // console.log("player leaved grid ");
+             console.log("player leaved grid ");
 
             // Should try to fill player area.
             players[i].last_position_on_grid = new Position(player_pos_on_grid.x - players[i].dir.x,
@@ -405,14 +405,14 @@ function checkFilling()
         }
 
         // Check if player should fill his area.
-        else if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y] === players[i].ID+2)
-        && ((GameConfig.GRID[player_pos_on_grid.x - players[i].last_dir.x][player_pos_on_grid.y - players[i].last_dir.y]
+        else if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID+2)
+        && ((GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y][0]
         ===players[i].ID+1) || true))
         {
 
             if(!players[i].record_path)
                 return;
-            // console.log("player is back to grid");
+            console.log("player is back to grid");
 
             players[i].record_path = false;
 
@@ -491,7 +491,7 @@ function checkFilling()
                     if(min_x === max_x -1)
                     {
 
-                        GameConfig.GRID[min_x][y] = players[i].ID + 2;
+                        GameConfig.GRID[min_x][y][0] = players[i].ID + 2;
                         tempx--;
                         continue;
 
@@ -500,7 +500,7 @@ function checkFilling()
                     for(let curr_x = min_x ; curr_x <= max_x; curr_x++)
                     {
 
-                        GameConfig.GRID[curr_x][y] = players[i].ID + 2;
+                        GameConfig.GRID[curr_x][y][0] = players[i].ID + 2;
                     }
 
 
@@ -510,7 +510,7 @@ function checkFilling()
                 if(x_arr.length%2!==0 || true)
                 {
 
-                    GameConfig.GRID[x_arr[x_arr.length-1]][y] = players[i].ID+2;
+                    GameConfig.GRID[x_arr[x_arr.length-1]][y][0] = players[i].ID+2;
 
                 }
 

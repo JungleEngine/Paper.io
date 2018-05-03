@@ -42,8 +42,8 @@ class Player {
         this.ID = id;
         this.last_position_on_grid = new Position(0,0);
         // this.should_fill = false;
-        // this.on_his_area = false;
-        // this.was_on_his_area = false;
+        this.on_his_area = false;
+        this.was_on_his_area = false;
     }
 
     // Update grid position.
@@ -277,7 +277,7 @@ class Player {
                 if(visited[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]]===0 && true)
                 {
 
-                    if(GameConfig.GRID[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]] === this.ID+2)
+                    if(GameConfig.GRID[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]][0] === this.ID+2)
                     {
 
                         visited[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]] = 1;

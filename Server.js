@@ -135,7 +135,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     // Set initial 3 cells for player
     for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
         for (let j = player_data.pos_y - 1; j <= player_data.pos_y + 1; j++) {
-            rooms[room_name].grid[i][j] = player_data.ID + 2;
+            rooms[room_name].grid[i][j][0] = player_data.ID + 2;
         }
     }
 
@@ -158,24 +158,32 @@ function initNewRoom(room_name, socket_id) {
     var grid = [];
 
     // Initialize the grid with zeros.
-    for (let i = 0; i < canvas_length; ++i) {
+    for (let i = 0; i < canvas_length; ++i)
+    {
+
         grid[i] = [];
-        for (let j = 0; j < canvas_length; ++j) {
-            grid[i][j] = 0;
+        for (let j = 0; j < canvas_length; ++j)
+        {
+
+            grid[i][j] = [];
+            grid[i][j][0] = 0;
+            grid[i][j][1] = 0;
+
         }
+
     }
 
     // Place game borders in grid.
     let border_start = grid_start - 1;
     let border_end = grid_end + 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[i][border_start] = 1;
+        grid[i][border_start][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[i][border_end] = 1;
+        grid[i][border_end][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[border_start][i] = 1;
+        grid[border_start][i][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[border_end][i] = 1;
+        grid[border_end][i][0] = 1;
 
 
     // Create new room.
@@ -284,9 +292,9 @@ function simulate(room_name) {
         while (delta > 0) {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
             if (player.dir_x != 0) {
-                cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
+                cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))][0];
             } else {
-                cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
+                cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))][0];
             }
 
 
@@ -437,7 +445,8 @@ function fixDir(player, last_pos,room_name) {
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
-                    "player_pos": [player.pos_x, player.pos_y]
+                    "player_pos": [player.pos_x, player.pos_y],
+                    "grid":rooms[room_name].grid
                 });
             }
         }
@@ -461,10 +470,10 @@ function removeDeadPlayer(room_name, player) {
     // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {
-            if (rooms[room_name].grid[i][j] == playerID ||
-                rooms[room_name].grid[i][j] == playerID + 1 ||
-                rooms[room_name].grid[i][j] == playerID + 2) {
-                rooms[room_name].grid[i][j] = 0;
+            if (rooms[room_name].grid[i][j][0] == playerID ||
+                rooms[room_name].grid[i][j][0] == playerID + 1 ||
+                rooms[room_name].grid[i][j][0] == playerID + 2) {
+                rooms[room_name].grid[i][j][0] = 0;
             }
         }
     }
