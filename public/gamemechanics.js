@@ -28,12 +28,18 @@ function simulate() {
 
         while (delta > 0) {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir.x, "---------");
+            let indexI;
+            let indexJ;
             if(player.dir.x !== 0) {
-                cell =   GameConfig.GRID[Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
-                    [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+                indexI=Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x));
+                indexJ=Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y));
+                // cell =   GameConfig.GRID[Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
+                //     [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
             } else {
-                cell =   GameConfig.GRID[Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
-                    [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
+                indexI=Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x));
+                indexJ=Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y));
+                // cell =   GameConfig.GRID[Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
+                //     [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
             }
 
 
@@ -47,30 +53,34 @@ function simulate() {
                 }
             }
 
-            if (cell === 1 || cell === player.ID + 1) {    // Border || Own tail
+            if (GameConfig.GRID[indexI][indexJ] === 1 || GameConfig.GRID[indexI][indexJ] === player.ID + 1) {    // Border || Own tail
                 // Dies
                 // console.log("Player Died!!");
                // removeDeadPlayer(player.ID);
             }
-            else if (cell == player.ID + 2) {     // Own block
+            else if (GameConfig.GRID[indexI][indexJ] == player.ID + 2) {     // Own block
                 //TODO: Fill path
             }
-            else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+            else if (GameConfig.GRID[indexI][indexJ] == 0 || GameConfig.GRID[indexI][indexJ] % 4 == 0) {     // Empty || block
                 // Put tail
-                cell = player.ID + 1;
+                let player_pos_on_grid = player.getPlayerPositionOnGrid();
+                let xx = player_pos_on_grid.x;
+                let yy = player_pos_on_grid.y;
+                GameConfig.GRID[xx][yy] = player.ID + 1;
+
             }
-            else if(cell!=player.ID) {
+            else if(GameConfig.GRID[indexI][indexJ]!=player.ID) {
                 let killedPlayerID;
-                if(cell%4==2)//other player id
+                if(GameConfig.GRID[indexI][indexJ]%4==2)//other player id
                 {
-                    killedPlayerID=cell;
+                    killedPlayerID=GameConfig.GRID[indexI][indexJ];
                 }else {
-                    killedPlayerID = cell - 1;
+                    killedPlayerID = GameConfig.GRID[indexI][indexJ] - 1;
                 }
                 // Kill
                 //removeDeadPlayer(killedPlayerID);
                 if(delta<1) {
-                    cell = player.ID;
+                    GameConfig.GRID[indexI][indexJ] = player.ID;
                 }
             }
             delta-=GameConfig.BLOCK_SIZE;
@@ -179,6 +189,7 @@ function validateKeyPress()
 function removeDeadPlayer(playerID)
 {
 
+
         delete players[playerID];
 
 
@@ -199,8 +210,8 @@ function drawGrid()
 
     noStroke();
 
-    let x_window_start = Math.round((players[current_player_ID].position.x - (windowWidth / 2)) / block_size);
-    let y_window_start = Math.round((players[current_player_ID].position.y - (windowHeight / 2)) / block_size);
+    let x_window_start = Math.round((players[current_player_ID].position.x - (windowWidth / 2)) / GameConfig.BLOCK_SIZE);
+    let y_window_start = Math.round((players[current_player_ID].position.y - (windowHeight / 2)) / GameConfig.BLOCK_SIZE);
 
     noStroke();
 
@@ -215,15 +226,15 @@ function drawGrid()
                 fill(color(COLORS[GameConfig.GRID[i][j]]));
 
                 // Convert index in GameConfig.GRID to global pixel location.
-                player_global_pixel_position_x = i * block_size;
-                player_global_pixel_position_y = j * block_size;
+                player_global_pixel_position_x = i * GameConfig.BLOCK_SIZE;
+                player_global_pixel_position_y = j * GameConfig.BLOCK_SIZE;
 
                 // Get player screen pixel location.
                 let [player_local_pixel_position_x
                     , player_local_pixel_position_y] = worldToScreenCoordinates(player_global_pixel_position_x
                     , player_global_pixel_position_y);
 
-                rect(player_local_pixel_position_x, player_local_pixel_position_y, block_size + 1, block_size + 1); // +1 for filling gaps between cells
+                rect(player_local_pixel_position_x, player_local_pixel_position_y, GameConfig.BLOCK_SIZE + 1, GameConfig.BLOCK_SIZE + 1); // +1 for filling gaps between cells
             }
         }
     }
@@ -237,15 +248,15 @@ function drawGrid()
         let [player_local_pixel_position_x
             , player_local_pixel_position_y] = worldToScreenCoordinates(players[i].position.x
             , players[i].position.y);
-        player_local_pixel_position_x /= block_size;
-        player_local_pixel_position_y /= block_size;
+        player_local_pixel_position_x /= GameConfig.BLOCK_SIZE;
+        player_local_pixel_position_y /= GameConfig.BLOCK_SIZE;
 
-        rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 5); // +1 for filling gaps between cells
+        rect(player_local_pixel_position_x * GameConfig.BLOCK_SIZE, player_local_pixel_position_y * GameConfig.BLOCK_SIZE, GameConfig.BLOCK_SIZE + 1, GameConfig.BLOCK_SIZE + 5); // +1 for filling gaps between cells
 
         // Draw player.
         fill(color(COLORS[players[i].ID]));
 
-        rect(player_local_pixel_position_x * block_size, player_local_pixel_position_y * block_size, block_size + 1, block_size + 1); // +1 for filling gaps between cells
+        rect(player_local_pixel_position_x * GameConfig.BLOCK_SIZE, player_local_pixel_position_y * GameConfig.BLOCK_SIZE, GameConfig.BLOCK_SIZE + 1, GameConfig.BLOCK_SIZE + 1); // +1 for filling gaps between cells
 
     }
 }
@@ -281,7 +292,7 @@ function updateGrid() {
             //
             // }
 
-            GameConfig.GRID[x][y] = players[i].ID + 1;
+            // GameConfig.GRID[x][y] = players[i].ID + 1;
 
         }
     }
@@ -338,6 +349,8 @@ function fixDir(player,last_pos){
             //Adjust head position to match the new direction
             head.x += player.next_dir.x * 0.5 - player.dir.x * 0.5;
             head.y +=  player.next_dir.y * 0.5 - player.dir.y * 0.5;
+
+
 
 
             //Set direction to new direction

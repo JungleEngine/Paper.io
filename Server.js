@@ -281,12 +281,19 @@ function simulate(room_name) {
 
         let cell;
 
+
         while (delta > 0) {
+            let indexI;
+            let indexJ;
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
             if (player.dir_x != 0) {
-                cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
+                indexI=Math.round(last_pos_x_or_y + (0.5 * player.dir_x));
+                indexJ=Math.round(player.pos_y + (0.5 * player.dir_y));
+                // cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
             } else {
-                cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
+                indexI=Math.round(player.pos_x + (0.5 * player.dir_x));
+                indexJ=Math.round(last_pos_x_or_y + (0.5 * player.dir_y));
+                // cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
             }
 
 
@@ -300,34 +307,36 @@ function simulate(room_name) {
                 }
             }
 
-            if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
+            if (rooms[room_name].grid[indexI][indexJ] == 1 || rooms[room_name].grid[indexI][indexJ] == player.ID + 1) {    // Border || Own tail
                 // Dies
                 console.log("Player Died!!");
                 //removeDeadPlayer(room_name, indx);
             }
-            else if (cell == player.ID + 2) {     // Own block
+            else if (rooms[room_name].grid[indexI][indexJ] == player.ID + 2) {     // Own block
                 //TODO: Fill path
             }
-            else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+            else if (rooms[room_name].grid[indexI][indexJ] == 0 || rooms[room_name].grid[indexI][indexJ] % 4 == 0) {     // Empty || block
                 // Put tail
+                let player_pos_on_grid = getPlayerPositionOnGrid(player);
+                let xx = player_pos_on_grid.x;
+                let yy = player_pos_on_grid.y;
+                rooms[room_name].grid[xx][yy] = player.ID + 1;
 
-                cell = player.ID + 1;
             }
-            else if (cell != player.ID) {
+            else if (rooms[room_name].grid[indexI][indexJ] != player.ID) {
                 let killedPlayerID;
-                if (cell % 4 == 2)//other player id
+                if (rooms[room_name].grid[indexI][indexJ] % 4 == 2)//other player id
                 {
-                    killedPlayerID = cell;
+                    killedPlayerID = rooms[room_name].grid[indexI][indexJ];
                 } else {
-                    killedPlayerID = cell - 1;
+                    killedPlayerID = rooms[room_name].grid[indexI][indexJ] - 1;
                 }
                 // Kill
                 console.log(player.ID);
-                console.log(cell);
+                console.log(rooms[room_name].grid[indexI][indexJ]);
                 removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
                 if (delta < 1) {
-
-                    cell = player.ID;
+                    rooms[room_name].grid[indexI][indexJ] = player.ID;
                 }
             }
             delta--;
@@ -437,7 +446,8 @@ function fixDir(player, last_pos,room_name) {
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
-                    "player_pos": [player.pos_x, player.pos_y]
+                    "player_pos": [player.pos_x, player.pos_y]//,
+                   // "grid":rooms[room_name].grid
                 });
             }
         }
@@ -487,4 +497,47 @@ function getSocketIDfromPlayerID(playerID, room_name) {
             return indx;
         }
     }
+}
+
+function getPlayerPositionOnGrid(player){
+
+    let x = 0;
+    let y = 0;
+
+    // Player moving down.
+    if (player.dir_x == 0 && player.dir_y == 1)
+    {
+
+        x = Math.round(player.pos_x);
+        y = Math.floor(player.pos_y);
+    }
+
+    // this moving up.
+    if (player.dir_x == 0 && player.dir_y == -1)
+    {
+
+        x = Math.round(player.pos_x);
+        y = Math.ceil(player.pos_y);
+
+    }
+
+    // this moving left.
+    if (player.dir_x == -1 && player.dir_y == 0)
+    {
+
+        x = Math.floor(player.pos_x);
+        y = Math.round(player.pos_y);
+
+    }
+
+    // this moving right.
+    if (player.dir_x == 1 && player.dir_y == 0)
+    {
+
+        x = Math.ceil(player.pos_x);
+        y = Math.round(player.pos_y);
+
+    }
+    return {"x":x,"y":y};
+
 }
