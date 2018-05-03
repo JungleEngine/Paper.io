@@ -26,6 +26,7 @@ const grid_start = 50;
 const grid_length = 100;
 const grid_end = grid_start + grid_length;
 
+var GamePaused=false;
 io.on('connection', (socket) => {
 
     socket.on('join_room', (room_name) => {
@@ -46,22 +47,22 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.onclose = function(reason){
+    socket.onclose = function (reason) {
         console.log(socket.id);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
         console.log(rooms_keys);
-        removeDeadPlayer(rooms_keys[rooms_keys.length - 1],socket.id);
+        removeDeadPlayer(rooms_keys[rooms_keys.length - 1], socket.id);
         //console.log(socket.adapter.sids[socket.id]);
-        Object.getPrototypeOf(this).onclose.call(this,reason);
+        Object.getPrototypeOf(this).onclose.call(this, reason);
     };
 
     socket.on('disconnect', (data) => {
-    //console.log("on disconnect");
+        //console.log("on disconnect");
     });
 
-    socket.on('pause',()=>{
-        process.exit(1);
+    socket.on('pause', () => {
+        GamePaused=!GamePaused;
     });
     socket.on('validate', (dir) => {
 
@@ -70,8 +71,7 @@ io.on('connection', (socket) => {
         let rooms_keys = Object.keys(socket.rooms);
         let player = rooms[rooms_keys[rooms_keys.length - 1]].players[socket.id];
 
-        if(player==null)
-        {
+        if (player == null) {
             console.log("unknown player sending a message, either dead player or hacking");
             return;
         }
@@ -82,20 +82,20 @@ io.on('connection', (socket) => {
         //if y==0 && new_y == -1 || new_y ==1 && new_x==0   moving horizontally and new dir = moving vertically
         if ((player.dir_x == 0 && (new_dir_x == 1 || new_dir_x == -1) && new_dir_y == 0) ||
             (player.dir_y == 0 && (new_dir_y == 1 || new_dir_y == -1) && new_dir_x == 0)) {
-            console.log("x : ",new_dir_x, " , y : ",new_dir_y);
+            console.log("x : ", new_dir_x, " , y : ", new_dir_y);
             player.next_dir_x = new_dir_x;
-                player.next_dir_y = new_dir_y;
+            player.next_dir_y = new_dir_y;
 
-            player.new_key=true;
+            player.new_key = true;
             // If action is valid send it to the everyone
-            let room_name = socket.rooms[Object.keys(socket.rooms)[Object.keys(socket.rooms).length-1]];
+            let room_name = socket.rooms[Object.keys(socket.rooms)[Object.keys(socket.rooms).length - 1]];
             io.to(room_name).emit('player_key_press', {
                 "player_ID": player.ID,
                 "player_next_dir": dir,
-                "player_pos": [player.pos_x, player.pos_y]
+                 "player_pos": [player.pos_x, player.pos_y]
             });
         }
-        else{
+        else {
 
         }
     });
@@ -118,9 +118,14 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     let i = x;
     x += 4;
 
+    let map = rooms[room_name].players;
+    let number_of_players = map.size;
+
+ console.log("ZZZZ" ,number_of_players);
+
     //TODO: Find position for new player
-    player_data.pos_x = 70;
-    player_data.pos_y = 70;
+    player_data.pos_x = 70 + Math.round(Math.random() * 20 +10*Math.random());
+    player_data.pos_y = 70 + Math.round(Math.random() * 20+10*Math.random());
     player_data.dir_x = 1;
     player_data.dir_y = 0;
     player_data.next_dir_x = 1;
@@ -184,6 +189,7 @@ function initNewRoom(room_name, socket_id) {
 
     async.forever(
         function (next) {
+            if(GamePaused==false)
             simulate(room_name);
             setTimeout(function () {
                 next();
@@ -214,7 +220,7 @@ function updateCurrentRoom(room_name, socket_id) {
 }
 
 function sendNewPlayerToRoom(room_name, player_data) {
-    io.to(room_name).emit('new_player',player_data);
+    io.to(room_name).emit('new_player', player_data);
 }
 
 /**
@@ -230,16 +236,18 @@ function addPlayer(room_name, socket_id) {
 
     // If room does not exist, create new room.
     if (!io.nsps['/'].adapter.rooms[room_name]) {
-        let  player_data = initNewRoom(room_name, socket_id);
+        let player_data = initNewRoom(room_name, socket_id);
         player_parameters.player_id = player_data.ID;
+        player_parameters.grid = rooms[room_name].grid;
     }
     else {
         let player_data = updateCurrentRoom(room_name, socket_id);
+        player_parameters =  Object.assign( {}, player_data);
         player_parameters.player_id = player_data.ID;
-        sendNewPlayerToRoom(room_name,player_parameters);
+        player_parameters.grid = rooms[room_name].grid;
+        sendNewPlayerToRoom(room_name, player_parameters);
     }
 
-    player_parameters.grid = rooms[room_name].grid;
 
     // Make array of players to be sent to the client.
     let players = [];
@@ -264,7 +272,8 @@ function addPlayer(room_name, socket_id) {
  *
  * @param room_name
  */
-var dummyVariable=null;
+var dummyVariable = null;
+
 function simulate(room_name) {
 
     function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx) {
@@ -274,51 +283,53 @@ function simulate(room_name) {
 
         while (delta > 0) {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
-            if(player.dir_x != 0) {
+            if (player.dir_x != 0) {
                 cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
             } else {
                 cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
             }
 
 
-                // Change position according to moving direction
-                if(delta>1) {
-                    if (player_pos > last_pos_x_or_y) {
-                        last_pos_x_or_y++;
+            // Change position according to moving direction
+            if (delta > 1) {
+                if (player_pos > last_pos_x_or_y) {
+                    last_pos_x_or_y++;
 
-                    } else {
-                        last_pos_x_or_y--;
-                    }
+                } else {
+                    last_pos_x_or_y--;
                 }
+            }
 
-                    if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
-                        // Dies
-                        console.log("Player Died!!");
-                        //removeDeadPlayer(room_name, indx);
-                    }
-                    else if (cell == player.ID + 2) {     // Own block
-                        //TODO: Fill path
-                    }
-                    else if (cell == 0 || cell % 4 == 0) {     // Empty || block
-                        // Put tail
-                        cell = player.ID + 1;
-                    }
-                    else if(cell!=player.ID) {
-                        let killedPlayerID;
-                        if(cell%4==2)//other player id
-                        {
-                            killedPlayerID=cell;
-                        }else {
-                            killedPlayerID = cell - 1;
-                        }
-                        // Kill
-                        console.log(player.ID);
-                        console.log(cell);
-                        removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID,room_name));
-                        if(delta<1) {
-                            cell = player.ID;
-                        }
-                    }
+            if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
+                // Dies
+                console.log("Player Died!!");
+                //removeDeadPlayer(room_name, indx);
+            }
+            else if (cell == player.ID + 2) {     // Own block
+                //TODO: Fill path
+            }
+            else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+                // Put tail
+
+                cell = player.ID + 1;
+            }
+            else if (cell != player.ID) {
+                let killedPlayerID;
+                if (cell % 4 == 2)//other player id
+                {
+                    killedPlayerID = cell;
+                } else {
+                    killedPlayerID = cell - 1;
+                }
+                // Kill
+                console.log(player.ID);
+                console.log(cell);
+                removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
+                if (delta < 1) {
+
+                    cell = player.ID;
+                }
+            }
             delta--;
         }
     }
@@ -347,7 +358,7 @@ function simulate(room_name) {
         player.pos_y += speed * player.dir_y * delta_time;
 
 
-        fixDir(player,last_pos);
+        fixDir(player, last_pos,room_name);
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.pos_x - last_pos.x);
         let y_delta = Math.abs(player.pos_y - last_pos.y);
@@ -356,47 +367,39 @@ function simulate(room_name) {
         MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
 
 
-
-
-
-        if(dummyVariable==null) {
-             dummyVariable="test";
+        if (dummyVariable == null) {
+            dummyVariable = "test";
             setInterval(function () {
-                let x=player.pos_x;
-                let y=player.pos_y;
-                let dir_y=player.dir_y;
-                let dir_x=player.dir_x;
+                if(GamePaused==true)
+                    return;
+                let x = player.pos_x;
+                let y = player.pos_y;
+                let dir_y = player.dir_y;
+                let dir_x = player.dir_x;
                 console.log("Player position x: ", x);
                 console.log("Player position y: ", y);
                 console.log("Player direction x: ", player.dir_x);
                 console.log("Player direction y: ", player.dir_y);
-            }, 2000);
+            }, 500);
         }
-
-
-
-
-
-
 
 
     }
 }
 
 
-
-
-function fixDir(player,last_pos){
+function fixDir(player, last_pos,room_name) {
 
     let last_head = {};
 
-    last_head.x=last_pos.x+(0.5*player.dir_x);
-    last_head.y=last_pos.y+(0.5*player.dir_y);
+    last_head.x = last_pos.x + (0.5 * player.dir_x);
+    last_head.y = last_pos.y + (0.5 * player.dir_y);
 
-    let head={};
+    let head = {};
 
-    head.x=player.pos_x+(0.5*player.dir_x);
-    head.y=player.pos_y+(0.5*player.dir_y);
+    head.x = player.pos_x + (0.5 * player.dir_x);
+    head.y = player.pos_y + (0.5 * player.dir_y);
+
 
     // If direction changed
     if (player.dir_x !== player.next_dir_x || player.dir_y !== player.next_dir_y) {
@@ -413,8 +416,8 @@ function fixDir(player,last_pos){
             (player.dir_y === -1 && Math.ceil(last_head.y) !== Math.ceil(head.y))) {
 
             //Fix head on the cell
-            head.x = Math.round(head.x)+(0.5*player.dir_x);
-            head.y = Math.round(head.y)+(0.5*player.dir_y);
+            head.x = Math.round(head.x) + (0.5 * player.dir_x);
+            head.y = Math.round(head.y) + (0.5 * player.dir_y);
 
 
             //Adjust head position to match the new direction
@@ -426,8 +429,17 @@ function fixDir(player,last_pos){
             player.dir_x = player.next_dir_x;
             player.dir_y = player.next_dir_y;
 
-            player.pos_x=head.x - (0.5*player.next_dir_x);
-            player.pos_y=head.y - (0.5*player.next_dir_y);
+            player.pos_x = head.x - (0.5 * player.next_dir_x);
+            player.pos_y = head.y - (0.5 * player.next_dir_y);
+            if (player.new_key != null && player.new_key == true) {
+                player.new_key = false;
+                //console.log(" position ", player.pos_x,player.pos_y);
+                io.to(room_name).emit('player_change_direction', {
+                    "player_ID": player.ID,
+                    "player_dir": [player.next_dir_x, player.next_dir_y],
+                    "player_pos": [player.pos_x, player.pos_y]
+                });
+            }
         }
     }
 

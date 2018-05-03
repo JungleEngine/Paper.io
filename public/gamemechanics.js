@@ -1,12 +1,15 @@
 // Convert world coordinates to local screen pixels coordinates.
 function worldToScreenCoordinates(player_global_pixel_position_x
-    , player_global_pixel_position_y) {
+    , player_global_pixel_position_y)
+{
+
     // All players to this player distance.
     let another_player_x_distance = players[current_player_ID].position.x - player_global_pixel_position_x;
     let another_player_y_distance = players[current_player_ID].position.y - player_global_pixel_position_y;
 
     // Get screen pixel coordintes from 0,0.
     return [(windowWidth / 2) - another_player_x_distance, (windowHeight / 2) - another_player_y_distance];
+
 }
 
 function globalize() {
@@ -46,7 +49,7 @@ function simulate() {
 
             if (cell === 1 || cell === player.ID + 1) {    // Border || Own tail
                 // Dies
-                console.log("Player Died!!");
+                // console.log("Player Died!!");
                // removeDeadPlayer(player.ID);
             }
             else if (cell == player.ID + 2) {     // Own block
@@ -65,7 +68,7 @@ function simulate() {
                     killedPlayerID = cell - 1;
                 }
                 // Kill
-                removeDeadPlayer(killedPlayerID);
+                //removeDeadPlayer(killedPlayerID);
                 if(delta<1) {
                     cell = player.ID;
                 }
@@ -93,9 +96,9 @@ function simulate() {
                     return;
                 let int_x=player.position.x / GameConfig.BLOCK_SIZE;
                 let int_y=player.position.y / GameConfig.BLOCK_SIZE;
-                console.log("Player position x: " , int_x," Player position y: " , int_y);
-                console.log("Player direction: " , player.dir);
-            },2000);
+                // console.log("Player position x: " , int_x," Player position y: " , int_y);
+                // console.log("Player direction: " , player.dir);
+            },500);
         }
 
         // Change direction when reaching the end of a cell.
@@ -159,12 +162,15 @@ function validateKeyPress()
         keyboardLocked=true;
         setTimeout(function () {
             keyboardLocked=false;
-        }, 600);
+        }, 400);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
         updates["player_pos_normalized"] = players[current_player_ID].position / block_size;
-       emitUpdatesToServer(updates);
+
+        emitUpdatesToServer(updates);
+
+
     }
 
 }
@@ -285,6 +291,17 @@ function updateGrid() {
 
 function fixDir(player,last_pos){
 
+
+    // If direction already fixed don't fix it again.
+    // if(player.direction_already_fixed)
+    // {
+    //
+    //
+    //     player.direction_already_fixed = false;
+    //     return;
+    // }
+
+
     let last_head = {};
 
     last_head.x=(last_pos.x+(GameConfig.BLOCK_SIZE * (0.5*player.dir.x))) / GameConfig.BLOCK_SIZE;
@@ -348,8 +365,8 @@ function checkFilling()
         {
 
 
-            console.log("my ground.");
-            console.log("dir -> ", players[i].dir);
+            // console.log("my ground.");
+            // console.log("dir -> ", players[i].dir);
 
         }
 
@@ -358,7 +375,7 @@ function checkFilling()
             && (GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y]
                 ===players[i].ID+2) && !players[i].record_path)
         {
-            console.log("player leaved grid ");
+            // console.log("player leaved grid ");
 
             // Should try to fill player area.
             players[i].last_position_on_grid = new Position(player_pos_on_grid.x - players[i].dir.x,
@@ -395,7 +412,7 @@ function checkFilling()
 
             if(!players[i].record_path)
                 return;
-            console.log("player is back to grid");
+            // console.log("player is back to grid");
 
             players[i].record_path = false;
 

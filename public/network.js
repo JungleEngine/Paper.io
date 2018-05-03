@@ -11,7 +11,7 @@ function initGame(data)
     // Set initial grid.
     GameConfig.GRID = data["grid"];
     //console.log(data);
-    //console.log(data);
+    console.log("init game ",data);
     for ( i in data["players"])
     {
 
@@ -85,7 +85,7 @@ function onPlayerKeyPress(data)
       console.log(" Player key press -> ", data);
 
     // Update target player data.
-  //  players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
+    players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
 
 
     // Update target player position.
@@ -121,6 +121,8 @@ function onPlayerChangeDir(data)
     }
     else
     {
+        console.log("new player connected!");
+        console.log(data);
         player = new Player(new Dir(data["player_dir"][0], data["player_dir"][1])
             ,new Position(GameConfig.BLOCK_SIZE * data["player_pos"][0]
                 ,    GameConfig.BLOCK_SIZE * data["player_pos"][1]),data["player_ID"]);
@@ -129,9 +131,30 @@ function onPlayerChangeDir(data)
 
     }
     // Update player KEY_PRESSED from dir.
-   // players[data["player_ID"]].updateKeyPressFromDir();
+    players[data["player_ID"]].updateKeyPressFromDir();
 
     // To avoid fixing direction more than one time per loop.
-    //players[data["player_ID"]].direction_already_fixed = true;
+    players[data["player_ID"]].direction_already_fixed = true;
 
+}
+
+function newPlayerJoinedTheRoom(data)
+{
+
+    console.log("new player added ");
+    // Check if player is this player then do nothing.
+    if(data["player_id"] === current_player_ID)
+        return;
+
+    console.log("new player joined, ",data);
+    GameConfig.GRID = data["grid"];
+
+    player = new Player(new Dir(data["dir_x"], data["dir_y"])
+        ,new Position(GameConfig.BLOCK_SIZE * data["pos_x"]
+            ,    GameConfig.BLOCK_SIZE * data["pos_y"]),data["player_id"]);
+
+    players[player.ID] = player;
+
+    players[player.ID].updateKeyPressFromDir();
+    players[player.ID].record_path = true;
 }

@@ -28,11 +28,11 @@ const curr_client_indx = 0;
 var game_started = false;
 
 
-// TODO: function to be called by SocketIO to initialize playerslocalhost array.
+// TODO: function to be called by SocketIO to initialize players localhost array.
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io("http://localhost:8080");
+        socket = io();
 
         //try to send an action and wait for connected response
 
@@ -69,6 +69,9 @@ function setup() {
 
                 // Wait for initial map.
                 socket.on("initialize_game", initGame);
+
+                // New player joined the room.
+                socket.on("new_player",newPlayerJoinedTheRoom);
                 initializeLocal();
             }
         });
@@ -96,6 +99,13 @@ function initializeLocal() {
     createCanvas(windowWidth, windowHeight);
 }
 
+ function keyReleased() {
+   if (keyCode == 87) {
+       GameConfig.PAUSE = !GameConfig.PAUSE;
+       pauseServer();
+   }
+   return false; // prevent any default behavior
+ }
 function draw() {
     GameConfig.UPDATE_SPEED(getFrameRate(), 5);
     // Make speed adapts to change in frame rate
@@ -104,19 +114,11 @@ function draw() {
 
     if (startGame ) {
 
-        // If pause Game.
         if(GameConfig.PAUSE)
             return;
 
-        if(keyIsDown(87)) {
-            GameConfig.PAUSE = !GameConfig.PAUSE;
-            pauseServer();
-        }
-
-
         // Clear screen.
         background(255);
-
 
         simulate();
 
@@ -126,7 +128,6 @@ function draw() {
 
         checkFilling();
         finalize();
-
 
     }
 
