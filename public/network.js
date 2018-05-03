@@ -82,11 +82,11 @@ function emitUpdatesToServer(updates){
 function onPlayerKeyPress(data)
 {
 
-      //console.log(" Player key press -> ", data);
+    console.log(" Player key press -> ", data);
 
     // Update target player data.
     players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
-
+    players[data["player_ID"]].wait_server_response = false;
 
     // Update target player position.
     players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
@@ -134,10 +134,11 @@ function onPlayerChangeDir(data)
     }
     // Update player KEY_PRESSED from dir.
     players[data["player_ID"]].updateKeyPressFromDir();
+    players[data["player_ID"]].wait_server_response = false;
 
-    GameConfig.GRID = data.grid;
+  //  GameConfig.GRID = data.grid;
     // To avoid fixing direction more than one time per loop.
-//    players[data["player_ID"]].direction_already_fixed = true;
+   players[data["player_ID"]].direction_already_fixed = true;
 
 }
 

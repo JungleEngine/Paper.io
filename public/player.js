@@ -26,9 +26,11 @@ class Position {
 
 
 class Player {
+
     constructor(dir, position, id) {
         this.KEY_PRESSED = 'right';
         this.alive = true;
+        this.wait_server_response = false;
         this.path_vector = [];
         this.record_path = false;
         this.direction_already_fixed = false;
@@ -156,6 +158,8 @@ class Player {
     // Update key press from dir.
     updateDirFromKeyPress() {
 
+        if(this.wait_server_response)
+            return;
 
             if(this.next_dir==null)
             {
