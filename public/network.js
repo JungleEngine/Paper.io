@@ -116,10 +116,10 @@ function onPlayerChangeDir(data) {
         //console.log(players[data.player_ID].position.x / GameConfig.BLOCK_SIZE, players[data.player_ID].position.y / GameConfig.BLOCK_SIZE);
         // Update target player position.
 
-        console.log(" old pos ", players[data["player_ID"]].position);
-        players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
-        players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
-        console.log(" new pos", players[data["player_ID"]].position);
+        //console.log(" old pos ", players[data["player_ID"]].position);
+        //players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
+        //players[data["player_ID"]].position.y = data["player_pos"][1] * GameConfig.BLOCK_SIZE;
+        //console.log(" new pos", players[data["player_ID"]].position);
     } else {
         //     console.log("new player connected!");
         //   console.log(data);
@@ -132,7 +132,6 @@ function onPlayerChangeDir(data) {
     players[data["player_ID"]].updateKeyPressFromDir();
     players[data["player_ID"]].wait_server_response = false;
 
-    //  GameConfig.GRID = data.grid;
     // To avoid fixing direction more than one time per loop.
     players[data["player_ID"]].direction_already_fixed = true;
 

@@ -50,7 +50,7 @@ class Player {
     }
 
     // Update grid position.
-    getPlayerPositionOnGrid() {
+    getPlayerPositionOnGrid(last_pos) {
 
         let x = 0;
         let y = 0;
@@ -58,32 +58,32 @@ class Player {
         // Player moving down.
         if (this.dir.equal(new Dir(0, 1))) {
 
-            x = Math.round(this.position.x / GameConfig.BLOCK_SIZE);
-            y = Math.floor(this.position.y / GameConfig.BLOCK_SIZE);
+            x = Math.round(last_pos.x / GameConfig.BLOCK_SIZE);
+            y = Math.floor(last_pos.y / GameConfig.BLOCK_SIZE);
 
         }
 
         // this moving up.
         if (this.dir.equal(new Dir(0, -1))) {
 
-            x = Math.round(this.position.x / GameConfig.BLOCK_SIZE);
-            y = Math.ceil(this.position.y / GameConfig.BLOCK_SIZE);
+            x = Math.round(last_pos.x / GameConfig.BLOCK_SIZE);
+            y = Math.ceil(last_pos.y / GameConfig.BLOCK_SIZE);
 
         }
 
         // this moving right.
         if (this.dir.equal(new Dir(1, 0))) {
 
-            x = Math.floor(this.position.x / GameConfig.BLOCK_SIZE);
-            y = Math.round(this.position.y / GameConfig.BLOCK_SIZE);
+            x = Math.floor(last_pos.x / GameConfig.BLOCK_SIZE);
+            y = Math.round(last_pos.y / GameConfig.BLOCK_SIZE);
 
         }
 
         // this moving left.
         if (this.dir.equal(new Dir(-1, 0))) {
 
-            x = Math.ceil(this.position.x / GameConfig.BLOCK_SIZE);
-            y = Math.round(this.position.y / GameConfig.BLOCK_SIZE);
+            x = Math.ceil(last_pos.x / GameConfig.BLOCK_SIZE);
+            y = Math.round(last_pos.y / GameConfig.BLOCK_SIZE);
 
         }
         return new Position(x, y);
@@ -238,7 +238,7 @@ class Player {
         let delta_x = [0, 1, -1, 0];
         let delta_y = [1, 0, 0, -1];
         let queue = [];
-        let pos_on_grid = this.getPlayerPositionOnGrid();
+        let pos_on_grid = this.getPlayerPositionOnGrid(this.position);
         let curr_node = pos_on_grid;
         queue.push(pos_on_grid);
         visited[curr_node.x][curr_node.y] = 1;
