@@ -130,7 +130,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     let map = rooms[room_name].players;
     let number_of_players = map.size;
 
-    console.log("ZZZZ", number_of_players);
+    // console.log("ZZZZ", number_of_players);
 
     //TODO: Find position for new player
     player_data.pos_x = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
@@ -311,6 +311,10 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
 
 
     while (delta > 0) {
+        let head = {};
+
+
+
         let indexI;
         let indexJ;
         let tailPos;
@@ -326,6 +330,7 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
             indexJ = Math.round(last_pos_x_or_y + (0.5 * player.dir_y));
             // cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
         }
+
 
         // Put tail in the back
         //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
@@ -347,13 +352,29 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
         }
 
 
-        if (rooms[room_name].grid[indexI][indexJ][0] == 1 || rooms[room_name].grid[indexI][indexJ][0] == player.ID + 1) { // Border || Own tail
+        head.x = tailPos.x + (0.5 * player.dir_x);
+        head.y = tailPos.y + (0.5 * player.dir_y);
+        if (Math.round(head.x) === player.fix_pos_x && Math.round(head.y) === player.fix_pos_y) {
+        return ;
+        }
+        if (rooms[room_name].grid[indexI][indexJ][0] == 1) { // Border
             // Dies
 
             //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
             if ((player.dir_x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir_y != 0 && tailPos.y != Math.round(tailPos.y))) {
 
-                console.log("Player Died!!");
+                console.log("Player hit border!!");
+                removeDeadPlayer(room_name, indx);
+            }
+
+
+        } else if (rooms[room_name].grid[indexI][indexJ][0] == player.ID + 1) { // Own tail
+            // Dies
+
+            //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
+            if ((player.dir_x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir_y != 0 && tailPos.y != Math.round(tailPos.y))) {
+
+                console.log("Player stepped on his own tail!!");
                 //removeDeadPlayer(room_name, indx);
             }
 
@@ -372,8 +393,9 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
 
                 killedPlayerID = rooms[room_name].grid[indexI][indexJ][0] - 1;
             }
+            console.log("player killed someone or himself and we effed up");
             // Kill
-            console.log(rooms[room_name].grid[indexI][indexJ][0]);
+            // console.log(rooms[room_name].grid[indexI][indexJ][0]);
             //console.log(rooms[room_name].grid[indexI][indexJ][0]);
             //removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
             // if (delta < 1) {
@@ -413,20 +435,21 @@ function simulate() {
         // Update player position according to speed and delta time.
         player.pos_x += speed * player.dir_x * delta_time;
         player.pos_y += speed * player.dir_y * delta_time;
-
-        console.log("Player position x: ", player.pos_x);
-        console.log("Player position y: ", player.pos_y);
+        //
+        // console.log("Player position x: ", player.pos_x);
+        // console.log("Player position y: ", player.pos_y);
 
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.pos_x - last_pos.x);
         let y_delta = Math.abs(player.pos_y - last_pos.y);
 
+
         // Move on skipped cells in x and in y
         MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name);
         MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name);
-
         // Change direction when reaching the end of a cell.
         fixDir(player, last_pos, room_name);
+
 
         if (dummyVariable == null) {
             dummyVariable = "test";
@@ -534,6 +557,17 @@ function fixDir(player, last_pos, room_name) {
 function removeDeadPlayer(room_name, player) {
 
     console.log("Player " + player + " died!");
+
+    if(rooms[room_name]==null)
+    {
+        console.log("no room matches the room of the dead player");
+        return;
+    }
+    if(rooms[room_name].players==null||rooms[room_name].players[player]==null)
+    {
+        console.log("no player with this socket id: ",player, " in this room: ", room_name);
+        return;
+    }
 
     playerID = rooms[room_name].players[player].ID;
     console.log(rooms[room_name].players[player]);
