@@ -464,22 +464,22 @@ function removeDeadPlayer(room_name, player) {
 
     console.log("Player " + player + " died!");
 
-    playerID = rooms[room_name].players[player].ID;
-    console.log(rooms[room_name].players[player]);
-    console.log(playerID);
-    // Clear cells of the dead player
-    for (let i = grid_start; i < grid_end; i++) {
-        for (let j = grid_start; j < grid_end; j++) {
-            if (rooms[room_name].grid[i][j][0] == playerID ||
-                rooms[room_name].grid[i][j][0] == playerID + 1 ||
-                rooms[room_name].grid[i][j][0] == playerID + 2) {
-                rooms[room_name].grid[i][j][0] = 0;
-            }
-        }
-    }
-
-    // Remove dead player from room
-    delete rooms[room_name].players[player];
+    // playerID = rooms[room_name].players[player].ID;
+    // console.log(rooms[room_name].players[player]);
+    // console.log(playerID);
+    // // Clear cells of the dead player
+    // for (let i = grid_start; i < grid_end; i++) {
+    //     for (let j = grid_start; j < grid_end; j++) {
+    //         if (rooms[room_name].grid[i][j][0] == playerID ||
+    //             rooms[room_name].grid[i][j][0] == playerID + 1 ||
+    //             rooms[room_name].grid[i][j][0] == playerID + 2) {
+    //             rooms[room_name].grid[i][j][0] = 0;
+    //         }
+    //     }
+    // }
+    //
+    // // Remove dead player from room
+    // delete rooms[room_name].players[player];
 }
 
 

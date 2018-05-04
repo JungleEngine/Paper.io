@@ -45,7 +45,7 @@ function setup() {
             currentTime = date.getMilliseconds();
 
 
-//            socket.on("player_key_press", onPlayerKeyPress);
+            socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
 
             //delete the previous button
