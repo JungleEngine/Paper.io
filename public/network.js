@@ -139,6 +139,7 @@ function onPlayerChangeDir(data)
 
     // GameConfig.GRID = data.grid;
 
+
     // To avoid fixing direction more than one time per loop.
    players[data["player_ID"]].direction_already_fixed = true;
 
