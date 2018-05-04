@@ -156,3 +156,13 @@ function newPlayerJoinedTheRoom(data) {
     players[player.ID].updateKeyPressFromDir();
     players[player.ID].record_path = true;
 }
+
+function onPlayerFillArea(data)
+{
+
+    console.log("player filled data ", data);
+    let  color_index = data.color_index;
+    let path_vector = data.path_vector;
+
+    GameConfig.FILL(path_vector, color_index);
+}

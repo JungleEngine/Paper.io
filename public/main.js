@@ -47,6 +47,7 @@ function setup() {
 
             socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
+            socket.on("area_filling", onPlayerFillArea)
 
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
@@ -134,7 +135,7 @@ function draw() {
 
         drawGrid();
 
-        checkFilling();
+        //checkFilling();
         finalize();
 
     }

@@ -407,7 +407,10 @@ function checkFilling() {
     for (let i in players) {
 
 
+
         let player_pos_on_grid = players[i].getPlayerPositionOnGrid(players[i].position);
+        //console.log("player pos on grid " +GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0]);
+
         if ((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID + 2)) {
 
 
@@ -421,6 +424,7 @@ function checkFilling() {
             (GameConfig.GRID[player_pos_on_grid.x - players[i].last_dir.x][player_pos_on_grid.y - players[i].last_dir.y][0] ===
                 players[i].ID + 2) && !players[i].record_path) {
             console.log("player leaved grid ");
+            console.log(GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0]);
 
             // Should try to fill player area.
             players[i].last_position_on_grid = new Position(player_pos_on_grid.x - players[i].dir.x,
@@ -449,10 +453,10 @@ function checkFilling() {
 
         }
 
+
         // Check if player should fill his area.
-        else if ((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID + 2) &&
-            ((GameConfig.GRID[player_pos_on_grid.x - players[i].dir.x][player_pos_on_grid.y - players[i].dir.y][0] ===
-                players[i].ID + 1) || true)) {
+        else if (GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID + 2)
+             {
 
             if (!players[i].record_path)
                 return;
@@ -518,7 +522,7 @@ function checkFilling() {
 
             // Filling.
             for (let y in players[i].path_vector) {
-
+                console.log(" index : ",y);
                 let x_arr = players[i].path_vector[y];
                 let min_x;
 
