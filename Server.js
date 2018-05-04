@@ -6,7 +6,7 @@ var app = express();
 var server = require('http').Server(app);
 
 var async = require('async');
-var io = require('socket.io', {rememberTransport: false, transports: ['WebSocket']})(server);
+var io = require('socket.io', { rememberTransport: false, transports: ['WebSocket'] })(server);
 
 server.listen(8080);
 
@@ -26,7 +26,7 @@ const grid_start = 50;
 const grid_length = 100;
 const grid_end = grid_start + grid_length;
 
-var GamePaused=false;
+var GamePaused = false;
 io.on('connection', (socket) => {
 
     socket.on('join_room', (room_name) => {
@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.onclose = function (reason) {
+    socket.onclose = function(reason) {
         console.log(socket.id);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
@@ -62,8 +62,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('pause', () => {
-        GamePaused=!GamePaused;
+        GamePaused = !GamePaused;
     });
+
     socket.on('validate', (dir) => {
 
         let new_dir_x = dir.player_dir[0];
@@ -82,20 +83,27 @@ io.on('connection', (socket) => {
         //if y==0 && new_y == -1 || new_y ==1 && new_x==0   moving horizontally and new dir = moving vertically
         if ((player.dir_x == 0 && (new_dir_x == 1 || new_dir_x == -1) && new_dir_y == 0) ||
             (player.dir_y == 0 && (new_dir_y == 1 || new_dir_y == -1) && new_dir_x == 0)) {
-            console.log("x : ", new_dir_x, " , y : ", new_dir_y);
+
+            //console.log("x : ", new_dir_x, " , y : ", new_dir_y);
+
             player.next_dir_x = new_dir_x;
             player.next_dir_y = new_dir_y;
-
             player.new_key = true;
-            // If action is valid send it to the everyone
+
+            // Calculate fix position
+            let fix_pos = getFixPosition(player.pos_x, player.pos_y, player.dir_x, player.dir_y);
+            player.fix_pos_x = fix_pos.x;
+            player.fix_pos_y = fix_pos.y;
+
+            // If action is valid send it to everyone
             let room_name = socket.rooms[Object.keys(socket.rooms)[Object.keys(socket.rooms).length - 1]];
             io.to(room_name).emit('player_key_press', {
                 "player_ID": player.ID,
                 "player_next_dir": dir,
-                 "player_pos": [player.pos_x, player.pos_y]
+                "player_pos": [player.pos_x, player.pos_y],
+                "player_fix_pos": [player.fix_pos_x, player.fix_pos_y]
             });
-        }
-        else {
+        } else {
 
         }
     });
@@ -121,16 +129,18 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     let map = rooms[room_name].players;
     let number_of_players = map.size;
 
- console.log("ZZZZ" ,number_of_players);
+    console.log("ZZZZ", number_of_players);
 
     //TODO: Find position for new player
-    player_data.pos_x = 70 + Math.round(Math.random() * 20 +10*Math.random());
-    player_data.pos_y = 70 + Math.round(Math.random() * 20+10*Math.random());
+    player_data.pos_x = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
+    player_data.pos_y = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
     player_data.dir_x = 1;
     player_data.dir_y = 0;
     player_data.next_dir_x = 1;
     player_data.next_dir_y = 0;
     player_data.ID = i;
+    player_data.fix_pos_x = 0;
+    player_data.fix_pos_y = 0;
 
     // Set initial 3 cells for player
     for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
@@ -158,12 +168,10 @@ function initNewRoom(room_name, socket_id) {
     var grid = [];
 
     // Initialize the grid with zeros.
-    for (let i = 0; i < canvas_length; ++i)
-    {
+    for (let i = 0; i < canvas_length; ++i) {
 
         grid[i] = [];
-        for (let j = 0; j < canvas_length; ++j)
-        {
+        for (let j = 0; j < canvas_length; ++j) {
 
             grid[i][j] = [];
             grid[i][j][0] = 0;
@@ -196,14 +204,14 @@ function initNewRoom(room_name, socket_id) {
     rooms[room_name].grid = grid;
 
     async.forever(
-        function (next) {
-            if(GamePaused==false)
-            simulate(room_name);
-            setTimeout(function () {
+        function(next) {
+            if (GamePaused == false)
+                simulate(room_name);
+            setTimeout(function() {
                 next();
             }, 30)
         },
-        function (error) {
+        function(error) {
             console.log(error);
         }
     );
@@ -247,10 +255,9 @@ function addPlayer(room_name, socket_id) {
         let player_data = initNewRoom(room_name, socket_id);
         player_parameters.player_id = player_data.ID;
         player_parameters.grid = rooms[room_name].grid;
-    }
-    else {
+    } else {
         let player_data = updateCurrentRoom(room_name, socket_id);
-        player_parameters =  Object.assign( {}, player_data);
+        player_parameters = Object.assign({}, player_data);
         player_parameters.player_id = player_data.ID;
         player_parameters.grid = rooms[room_name].grid;
         sendNewPlayerToRoom(room_name, player_parameters);
@@ -308,22 +315,19 @@ function simulate(room_name) {
                 }
             }
 
-            if (cell == 1 || cell == player.ID + 1) {    // Border || Own tail
+            if (cell == 1 || cell == player.ID + 1) { // Border || Own tail
                 // Dies
                 console.log("Player Died!!");
                 //removeDeadPlayer(room_name, indx);
-            }
-            else if (cell == player.ID + 2) {     // Own block
+            } else if (cell == player.ID + 2) { // Own block
                 //TODO: Fill path
-            }
-            else if (cell == 0 || cell % 4 == 0) {     // Empty || block
+            } else if (cell == 0 || cell % 4 == 0) { // Empty || block
                 // Put tail
 
                 cell = player.ID + 1;
-            }
-            else if (cell != player.ID) {
+            } else if (cell != player.ID) {
                 let killedPlayerID;
-                if (cell % 4 == 2)//other player id
+                if (cell % 4 == 2) //other player id
                 {
                     killedPlayerID = cell;
                 } else {
@@ -346,7 +350,7 @@ function simulate(room_name) {
     for (let indx of Object.keys(map)) {
 
         let player = map[indx];
-        let last_pos = {"x": player.pos_x, "y": player.pos_y};
+        let last_pos = { "x": player.pos_x, "y": player.pos_y };
         let time = process.hrtime();
 
         // time = secs * 10^9 + nanoseconds
@@ -366,7 +370,7 @@ function simulate(room_name) {
         player.pos_y += speed * player.dir_y * delta_time;
 
 
-        fixDir(player, last_pos,room_name);
+        fixDir(player, last_pos, room_name);
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.pos_x - last_pos.x);
         let y_delta = Math.abs(player.pos_y - last_pos.y);
@@ -377,17 +381,17 @@ function simulate(room_name) {
 
         if (dummyVariable == null) {
             dummyVariable = "test";
-            setInterval(function () {
-                if(GamePaused==true)
+            setInterval(function() {
+                if (GamePaused == true)
                     return;
                 let x = player.pos_x;
                 let y = player.pos_y;
                 let dir_y = player.dir_y;
                 let dir_x = player.dir_x;
-                console.log("Player position x: ", x);
-                console.log("Player position y: ", y);
-                console.log("Player direction x: ", player.dir_x);
-                console.log("Player direction y: ", player.dir_y);
+                //console.log("Player position x: ", x);
+                //console.log("Player position y: ", y);
+                //console.log("Player direction x: ", player.dir_x);
+                //console.log("Player direction y: ", player.dir_y);
             }, 500);
         }
 
@@ -396,12 +400,12 @@ function simulate(room_name) {
 }
 
 
-function fixDir(player, last_pos,room_name) {
+function fixDir(player, last_pos, room_name) {
 
-    let last_head = {};
+    // let last_head = {};
 
-    last_head.x = last_pos.x + (0.5 * player.dir_x);
-    last_head.y = last_pos.y + (0.5 * player.dir_y);
+    // last_head.x = last_pos.x + (0.5 * player.dir_x);
+    // last_head.y = last_pos.y + (0.5 * player.dir_y);
 
     let head = {};
 
@@ -413,20 +417,22 @@ function fixDir(player, last_pos,room_name) {
     if (player.dir_x !== player.next_dir_x || player.dir_y !== player.next_dir_y) {
 
 
-        if (
-            //Crossed Cell Right
-            (player.dir_x === 1 && Math.floor(last_head.x) !== Math.floor(head.x)) ||
-            //Crossed Cell Left
-            (player.dir_x === -1 && Math.ceil(last_head.x) !== Math.ceil(head.x)) ||
-            //Crossed Cell Up
-            (player.dir_y === 1 && Math.floor(last_head.y) !== Math.floor(head.y)) ||
-            //Crossed Cell Down
-            (player.dir_y === -1 && Math.ceil(last_head.y) !== Math.ceil(head.y))) {
+        // if (
+        //     //Crossed Cell Right
+        //     (player.dir_x === 1 && Math.floor(last_head.x) !== Math.floor(head.x)) ||
+        //     //Crossed Cell Left
+        //     (player.dir_x === -1 && Math.ceil(last_head.x) !== Math.ceil(head.x)) ||
+        //     //Crossed Cell Up
+        //     (player.dir_y === 1 && Math.floor(last_head.y) !== Math.floor(head.y)) ||
+        //     //Crossed Cell Down
+        //     (player.dir_y === -1 && Math.ceil(last_head.y) !== Math.ceil(head.y))) {
+
+        // If head reached the fix cell
+        if (Math.round(head.x) === player.fix_pos_x && Math.round(head.y) === player.fix_pos_y) {
 
             //Fix head on the cell
-            head.x = Math.round(head.x) + (0.5 * player.dir_x);
-            head.y = Math.round(head.y) + (0.5 * player.dir_y);
-
+            head.x = Math.round(head.x) - (0.5 * player.dir_x);
+            head.y = Math.round(head.y) - (0.5 * player.dir_y);
 
             //Adjust head position to match the new direction
             head.x += player.next_dir_x * 0.5 - player.dir_x * 0.5;
@@ -439,14 +445,18 @@ function fixDir(player, last_pos,room_name) {
 
             player.pos_x = head.x - (0.5 * player.next_dir_x);
             player.pos_y = head.y - (0.5 * player.next_dir_y);
+
+            console.log("Player fix position x: ", player.pos_x);
+            console.log("Player fix position y: ", player.pos_y);
+
             if (player.new_key != null && player.new_key == true) {
                 player.new_key = false;
-                //console.log(" position ", player.pos_x,player.pos_y);
+                console.log(" position ", player.pos_x, player.pos_y);
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
                     "player_pos": [player.pos_x, player.pos_y],
-                    "grid":rooms[room_name].grid
+                    //"grid": rooms[room_name].grid
                 });
             }
         }
@@ -496,4 +506,55 @@ function getSocketIDfromPlayerID(playerID, room_name) {
             return indx;
         }
     }
+}
+
+
+
+function getFixPosition(pos_x, pos_y, dir_x, dir_y) {
+
+    let head = {};
+    let fix_pos = {};
+
+    head.x = pos_x + (0.5 * dir_x);
+    head.y = pos_y + (0.5 * dir_y);
+
+
+    // ---- Getting the end of the cell of the head ----
+    // ----  then adding one cell in the direction  ----
+
+    // Moving right
+    if (dir_x == 1) {
+        head.x = Math.ceil(head.x);
+        head.y = Math.round(head.y);
+        fix_pos.x = head.x + 1;
+        fix_pos.y = head.y;
+    }
+
+    // Moving left
+    if (dir_x == -1) {
+        head.x = Math.floor(head.x);
+        head.y = Math.round(head.y);
+        fix_pos.x = head.x - 1;
+        fix_pos.y = head.y;
+    }
+
+    // Moving up
+    if (dir_y == -1) {
+        head.x = Math.round(head.x);
+        head.y = Math.floor(head.y);
+        fix_pos.x = head.x;
+        fix_pos.y = head.y - 1;
+    }
+
+    // Moving down
+    if (dir_y == 1) {
+        head.x = Math.round(head.x);
+        head.y = Math.ceil(head.y);
+        fix_pos.x = head.x;
+        fix_pos.y = head.y + 1;
+    }
+
+    // -------------------------------------------------
+
+    return fix_pos;
 }
