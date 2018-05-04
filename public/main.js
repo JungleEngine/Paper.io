@@ -45,7 +45,7 @@ function setup() {
             currentTime = date.getMilliseconds();
 
 
-//            socket.on("player_key_press", onPlayerKeyPress);
+            socket.on("player_key_press", onPlayerKeyPress);
             socket.on("player_change_direction", onPlayerChangeDir);
 
             //delete the previous button
@@ -60,12 +60,19 @@ function setup() {
             btn.name = "but";
             btn.width = 200;
             btn.height = 200;
+            document.body.insertAdjacentHTML('beforeend',"<h1> room name  </h1>");
+            document.body.insertAdjacentHTML('beforeend',"<input type='text' id='room_name' >");
+
             document.body.appendChild(btn);
 
             btn.onclick = function() {
                 // Remove own button
                 btn.parentNode.removeChild(btn);
-                socket.emit("join_room", "Room1");
+
+                let room_name = document.getElementById('room_name').value;
+                document.body.innerHTML= "";
+
+                socket.emit("join_room",room_name);
 
                 // Wait for initial map.
                 socket.on("initialize_game", initGame);
