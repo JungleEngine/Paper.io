@@ -131,6 +131,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     player_data.next_dir_x = 1;
     player_data.next_dir_y = 0;
     player_data.ID = i;
+    player_data.record_path = true;
 
     // Set initial 3 cells for player
     for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
@@ -395,9 +396,11 @@ function simulate(room_name) {
 
 
 
+
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.pos_x - last_pos.x);
         let y_delta = Math.abs(player.pos_y - last_pos.y);
+
         // Move on skipped cells in x and in y
         MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
         MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
@@ -412,7 +415,9 @@ function simulate(room_name) {
                 let y = player.pos_y;
                 let dir_y = player.dir_y;
                 let dir_x = player.dir_x;
-                console.log("Player position x: ", x);
+
+                console.log("player pos_on_grid : ", player.pos_x);
+                console.log("Player position(pixel) x: ", x);
                 console.log("Player position y: ", y);
                 console.log("Player direction x: ", player.dir_x);
                 console.log("Player direction y: ", player.dir_y);
