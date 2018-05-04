@@ -502,8 +502,8 @@ function fixDir(player, last_pos, room_name) {
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
-                    "player_pos": [player.pos_x, player.pos_y],
-                    "grid": rooms[room_name].grid
+                    "player_pos": [player.pos_x, player.pos_y]//,
+                    //"grid": rooms[room_name].grid
                 });
             }
         }
