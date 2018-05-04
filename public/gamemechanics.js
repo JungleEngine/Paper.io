@@ -51,8 +51,9 @@ function simulate() {
             let player_pos_on_grid = player.getPlayerPositionOnGrid(tailPos);
             let xx = player_pos_on_grid.x;
             let yy = player_pos_on_grid.y;
-            if (GameConfig.GRID[xx][yy][0] != player.ID + 2)
+            if (GameConfig.GRID[xx][yy][0] != player.ID + 2) {
                 GameConfig.GRID[xx][yy][0] = player.ID + 1;
+            }
 
             // Change position according to moving direction
             if (delta > GameConfig.BLOCK_SIZE) {
@@ -63,7 +64,13 @@ function simulate() {
                     last_pos_x_or_y -= GameConfig.BLOCK_SIZE;
                 }
             }
-
+            let head = {};
+            head.x = tailPos.x + (0.5 * player.dir_x);
+            head.y = tailPos.y + (0.5 * player.dir_y);
+            if (Math.round(head.x) === player.fix_pos_x && Math.round(head.y) === player.fix_pos_y) {
+                console.log("The rare case has happened");
+                return ;
+            }
             if (GameConfig.GRID[indexI][indexJ][0] === 1 || GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Border || Own tail
                 // Dies
                 //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
@@ -98,11 +105,27 @@ function simulate() {
     }
     // Validate player action.
     validateKeyPress();
-    for (let indx of Object.keys(players)) {
+
+    for(let indx of Object.keys(players)){
+
 
         let player = players[indx];
         player.updateDirFromKeyPress();
         let last_pos = { "x": player.position.x, "y": player.position.y };
+
+        let time = window.performance.now();
+        // First run
+        // if (!player.last_time_stamp) {
+        //     player.last_time_stamp = time;
+        //     //continue;
+        // }
+        //
+        //
+        // let delta_time = (time - player.last_time_stamp) / 1000;
+        // player.last_time_stamp = time;
+        //
+        // player.position.x += player.dir.x * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
+        // player.position.y += player.dir.y * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
 
         player.position.x += player.dir.x * GameConfig.SPEED;
         player.position.y += player.dir.y * GameConfig.SPEED;
@@ -110,6 +133,7 @@ function simulate() {
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.position.x - last_pos.x);
         let y_delta = Math.abs(player.position.y - last_pos.y);
+
 
         // Move on skipped cells in x and in y
         MoveOnCells(x_delta, last_pos.x, last_pos, player.position.x, player, indx);
@@ -172,7 +196,7 @@ function validateKeyPress() {
         keyboardLocked = true;
         setTimeout(function() {
             keyboardLocked = false;
-        }, 200);
+        }, 50);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
@@ -321,6 +345,8 @@ function fixDir(player, last_pos) {
     head.x = (player.position.x + (GameConfig.BLOCK_SIZE * (0.5 * player.dir.x))) / GameConfig.BLOCK_SIZE;
     head.y = (player.position.y + (GameConfig.BLOCK_SIZE * (0.5 * player.dir.y))) / GameConfig.BLOCK_SIZE;
 
+
+
     // If direction changed
     if (player.dir.x !== player.next_dir.x || player.dir.y !== player.next_dir.y) {
 
@@ -337,6 +363,7 @@ function fixDir(player, last_pos) {
         //     (player.dir.y === -1 && Math.ceil(last_head.y) !== Math.ceil(head.y))) {
 
 
+
         // If head reached the fix cell
         if (Math.round(head.x) === (player.fix_position.x / GameConfig.BLOCK_SIZE) &&
             Math.round(head.y) === (player.fix_position.y / GameConfig.BLOCK_SIZE)) {
@@ -344,8 +371,11 @@ function fixDir(player, last_pos) {
             //Fix head on the cell
             if (player.dir.x !== 0) {
                 head.x = Math.round(head.x) - (0.5 * player.dir.x);
+                head.y = Math.round(head.y);
             } else {
+                head.x = Math.round(head.x);
                 head.y = Math.round(head.y) - (0.5 * player.dir.y);
+
             }
 
             //Adjust head position tomatch the new direction
@@ -362,7 +392,11 @@ function fixDir(player, last_pos) {
 
         }
     }
-
+    if(player.position.x/GameConfig.BLOCK_SIZE!=Math.round(player.position.x/GameConfig.BLOCK_SIZE)&&player.position.y/GameConfig.BLOCK_SIZE!=Math.round(player.position.y/GameConfig.BLOCK_SIZE))
+    {
+        player.position.x=Math.round(player.position.x/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
+        player.position.y=Math.round(player.position.y/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
+    }
 }
 
 

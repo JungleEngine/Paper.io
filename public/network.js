@@ -135,6 +135,8 @@ function onPlayerChangeDir(data) {
     // To avoid fixing direction more than one time per loop.
     players[data["player_ID"]].direction_already_fixed = true;
 
+    // GameConfig.GRID = data.grid;
+
 }
 
 function newPlayerJoinedTheRoom(data) {
