@@ -19,6 +19,8 @@ var rooms = {};
 // should be removed
 var x = 2;
 
+// Changes when game starts.
+var game_started = false;
 const room_capacity = 3; //TODO: use this..
 const speed = 5; // blocks/sec
 const canvas_length = 200;
@@ -123,8 +125,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     //TODO: Generate new position for player by knowing his room.
 
     let player_data = {};
-    let i = x;
-    x += 4;
+
 
     let map = rooms[room_name].players;
     let number_of_players = map.size;
@@ -138,7 +139,11 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     player_data.dir_y = 0;
     player_data.next_dir_x = 1;
     player_data.next_dir_y = 0;
-    player_data.ID = i;
+    player_data.ID = rooms[room_name].next_available_ID;
+
+    // Update next available ID in this room.
+    rooms[room_name].next_available_ID += 4;
+
     player_data.fix_pos_x = 0;
     player_data.fix_pos_y = 0;
     player_data.record_path = true;
@@ -206,10 +211,16 @@ function initNewRoom(room_name, socket_id) {
     // Insert the new grid in the room.
     rooms[room_name].grid = grid;
 
-    async.forever(
+    // Next available ID.
+    rooms[room_name].next_available_ID = 2;
+
+    if(!game_started)
+    {
+        game_started = true;
+        async.forever(
         function(next) {
             if (GamePaused == false)
-                simulate(room_name);
+                simulate();
             setTimeout(function() {
                 next();
             }, 30)
@@ -217,8 +228,9 @@ function initNewRoom(room_name, socket_id) {
         function(error) {
             console.log(error);
         }
-    );
+        );
 
+    }
     // Insert player in the room.
     return setInitialParametersForNewPlayer(room_name, socket_id);
 }
@@ -290,89 +302,94 @@ function addPlayer(room_name, socket_id) {
  *
  * @param room_name
  */
+
+
+function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx, room_name) {
+
+
+    let cell;
+
+
+    while (delta > 0) {
+        let indexI;
+        let indexJ;
+        let tailPos;
+        //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
+        if (player.dir_x != 0) {
+            tailPos = { "x": last_pos_x_or_y, "y": player.pos_y };
+            indexI = Math.round(last_pos_x_or_y + (0.5 * player.dir_x));
+            indexJ = Math.round(player.pos_y + (0.5 * player.dir_y));
+            // cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
+        } else {
+            tailPos = { "x": player.pos_x, "y": last_pos_x_or_y };
+            indexI = Math.round(player.pos_x + (0.5 * player.dir_x));
+            indexJ = Math.round(last_pos_x_or_y + (0.5 * player.dir_y));
+            // cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
+        }
+
+        // Put tail in the back
+        //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
+        let player_pos_on_grid = getPlayerPositionOnGrid(player, tailPos);
+        let xx = player_pos_on_grid.x;
+        let yy = player_pos_on_grid.y;
+        if (rooms[room_name].grid[xx][yy][0] != player.ID + 2) {
+            rooms[room_name].grid[xx][yy][0] = player.ID + 1;
+        }
+
+        // Change position according to moving direction
+        if (delta > 1) {
+            if (player_pos > last_pos_x_or_y) {
+                last_pos_x_or_y++;
+
+            } else {
+                last_pos_x_or_y--;
+            }
+        }
+
+
+        if (rooms[room_name].grid[indexI][indexJ][0] == 1 || rooms[room_name].grid[indexI][indexJ][0] == player.ID + 1) { // Border || Own tail
+            // Dies
+
+            //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
+            if ((player.dir_x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir_y != 0 && tailPos.y != Math.round(tailPos.y))) {
+
+                console.log("Player Died!!");
+                //removeDeadPlayer(room_name, indx);
+            }
+
+
+        } else if (rooms[room_name].grid[indexI][indexJ][0] == player.ID + 2) { // Own block
+            //TODO: Fill path
+        } else if (rooms[room_name].grid[indexI][indexJ][0] == 0 || rooms[room_name].grid[indexI][indexJ][0] % 4 == 0) { // Empty || block
+
+
+        } else if (rooms[room_name].grid[indexI][indexJ][0] != player.ID) {
+            let killedPlayerID;
+            if (rooms[room_name].grid[indexI][indexJ][0] % 4 == 2) //other player id
+            {
+                killedPlayerID = rooms[room_name].grid[indexI][indexJ][0];
+            } else {
+
+                killedPlayerID = rooms[room_name].grid[indexI][indexJ][0] - 1;
+            }
+            // Kill
+            console.log(rooms[room_name].grid[indexI][indexJ][0]);
+            //console.log(rooms[room_name].grid[indexI][indexJ][0]);
+            //removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
+            // if (delta < 1) {
+            //     rooms[room_name].grid[indexI][indexJ][0] = player.ID;
+            // }
+        }
+        delta--;
+    }
+}
+
 var dummyVariable = null;
 
-function simulate(room_name) {
+function simulate() {
 
-    function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx) {
-
-
-        let cell;
-
-
-        while (delta > 0) {
-            let indexI;
-            let indexJ;
-            let tailPos;
-            //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
-            if (player.dir_x != 0) {
-                tailPos = { "x": last_pos_x_or_y, "y": player.pos_y };
-                indexI = Math.round(last_pos_x_or_y + (0.5 * player.dir_x));
-                indexJ = Math.round(player.pos_y + (0.5 * player.dir_y));
-                // cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
-            } else {
-                tailPos = { "x": player.pos_x, "y": last_pos_x_or_y };
-                indexI = Math.round(player.pos_x + (0.5 * player.dir_x));
-                indexJ = Math.round(last_pos_x_or_y + (0.5 * player.dir_y));
-                // cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
-            }
-
-            // Put tail in the back
-            //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
-            let player_pos_on_grid = getPlayerPositionOnGrid(player, tailPos);
-            let xx = player_pos_on_grid.x;
-            let yy = player_pos_on_grid.y;
-            if (rooms[room_name].grid[xx][yy][0] != player.ID + 2) {
-                rooms[room_name].grid[xx][yy][0] = player.ID + 1;
-            }
-
-            // Change position according to moving direction
-            if (delta > 1) {
-                if (player_pos > last_pos_x_or_y) {
-                    last_pos_x_or_y++;
-
-                } else {
-                    last_pos_x_or_y--;
-                }
-            }
-
-
-            if (rooms[room_name].grid[indexI][indexJ][0] == 1 || rooms[room_name].grid[indexI][indexJ][0] == player.ID + 1) { // Border || Own tail
-                // Dies
-
-                //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
-                if ((player.dir_x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir_y != 0 && tailPos.y != Math.round(tailPos.y))) {
-
-                    console.log("Player Died!!");
-                    //removeDeadPlayer(room_name, indx);
-                }
-
-
-            } else if (rooms[room_name].grid[indexI][indexJ][0] == player.ID + 2) { // Own block
-                //TODO: Fill path
-            } else if (rooms[room_name].grid[indexI][indexJ][0] == 0 || rooms[room_name].grid[indexI][indexJ][0] % 4 == 0) { // Empty || block
-
-
-            } else if (rooms[room_name].grid[indexI][indexJ][0] != player.ID) {
-                let killedPlayerID;
-                if (rooms[room_name].grid[indexI][indexJ][0] % 4 == 2) //other player id
-                {
-                    killedPlayerID = rooms[room_name].grid[indexI][indexJ][0];
-                } else {
-
-                    killedPlayerID = rooms[room_name].grid[indexI][indexJ][0] - 1;
-                }
-                // Kill
-                console.log(rooms[room_name].grid[indexI][indexJ][0]);
-                //console.log(rooms[room_name].grid[indexI][indexJ][0]);
-                //removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
-                // if (delta < 1) {
-                //     rooms[room_name].grid[indexI][indexJ][0] = player.ID;
-                // }
-            }
-            delta--;
-        }
-    }
+    for(let room_name of Object.keys(rooms))
+    {
 
     let map = rooms[room_name].players;
     for (let indx of Object.keys(map)) {
@@ -405,8 +422,8 @@ function simulate(room_name) {
         let y_delta = Math.abs(player.pos_y - last_pos.y);
 
         // Move on skipped cells in x and in y
-        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
-        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
+        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name);
+        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name);
 
         // Change direction when reaching the end of a cell.
         fixDir(player, last_pos, room_name);
@@ -428,6 +445,7 @@ function simulate(room_name) {
                 console.log("Player direction y: ", player.dir_y);
             }, 500);
         }
+    }
     }
 }
 
@@ -531,6 +549,9 @@ function removeDeadPlayer(room_name, player) {
             }
         }
     }
+
+    // Make this player slot in room available.
+    rooms[room_name].next_available_ID = Math.max(2, rooms[room_name].next_available_ID - 4);
 
     // Remove dead player from room
     delete rooms[room_name].players[player];
