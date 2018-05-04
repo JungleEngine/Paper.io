@@ -30,18 +30,30 @@ function simulate() {
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir.x, "---------");
             let indexI;
             let indexJ;
+            let tailPos;
             if(player.dir.x !== 0) {
+                tailPos={"x":last_pos_x_or_y,"y":player.position.y};
                 indexI=Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x));
                 indexJ=Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y));
                 // cell =   GameConfig.GRID[Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
                 //     [Math.round(player.position.y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
             } else {
+                tailPos={"x":player.position.x,"y":last_pos_x_or_y};
                 indexI=Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x));
                 indexJ=Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y));
                 // cell =   GameConfig.GRID[Math.round(player.position.x/GameConfig.BLOCK_SIZE + (0.5 * player.dir.x))]
                 //     [Math.round(last_pos_x_or_y/GameConfig.BLOCK_SIZE + (0.5 * player.dir.y))];
             }
 
+
+
+            //put tail in the back
+            //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
+            let player_pos_on_grid = player.getPlayerPositionOnGrid(tailPos);
+            let xx = player_pos_on_grid.x;
+            let yy = player_pos_on_grid.y;
+            if(GameConfig.GRID[xx][yy][0] != player.ID + 2)
+                GameConfig.GRID[xx][yy][0] = player.ID + 1;
 
             // Change position according to moving direction
             if(delta>GameConfig.BLOCK_SIZE) {
@@ -55,18 +67,20 @@ function simulate() {
 
             if (GameConfig.GRID[indexI][indexJ][0] === 1 || GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) {    // Border || Own tail
                 // Dies
-                // console.log("Player Died!!");
-               // removeDeadPlayer(player.ID);
+                //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
+                if ( (player.dir.x != 0 && tailPos.x != Math.round(tailPos.x) ) || ( player.dir.y != 0 && tailPos.y != Math.round(tailPos.y)) ) {
+                    console.log("Player Died!!");
+                    //removeDeadPlayer(player.ID);
+                }
+
             }
             else if (GameConfig.GRID[indexI][indexJ][0] == player.ID + 2) {     // Own block
                 //TODO: Fill path
             }
             else if (GameConfig.GRID[indexI][indexJ][0] == 0 || GameConfig.GRID[indexI][indexJ][0] % 4 == 0) {     // Empty || block
                 // Put tail
-                let player_pos_on_grid = player.getPlayerPositionOnGrid();
-                let xx = player_pos_on_grid.x;
-                let yy = player_pos_on_grid.y;
-                GameConfig.GRID[xx][yy][0] = player.ID + 1;
+
+
 
             }
             else if(GameConfig.GRID[indexI][indexJ][0]!=player.ID) {
@@ -80,7 +94,7 @@ function simulate() {
                 // Kill
                 //removeDeadPlayer(killedPlayerID);
                 if(delta<1) {
-                    GameConfig.GRID[indexI][indexJ][0] = player.ID;
+                    //GameConfig.GRID[indexI][indexJ][0] = player.ID;
                 }
             }
             delta-=GameConfig.BLOCK_SIZE;
@@ -111,8 +125,7 @@ function simulate() {
             },500);
         }
 
-        // Change direction when reaching the end of a cell.
-        fixDir(player,last_pos);
+
 
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.position.x - last_pos.x);
@@ -122,7 +135,8 @@ function simulate() {
         MoveOnCells(y_delta, last_pos.y, last_pos, player.position.y, player, indx);
 
 
-
+        // Change direction when reaching the end of a cell.
+        fixDir(player,last_pos);
     }
 }
 
@@ -222,8 +236,14 @@ function drawGrid()
             if (GameConfig.GRID[i][j][0] !== 0) {
 
 
+                if(GameConfig.GRID[i][j][0]==null) {
+                    console.log("GameConfig.GRID[i][j][0] => ", GameConfig.GRID[i][j][0]);
+                    console.log(i, j);
+                }
                 // Set color for filling.
-                fill(color(COLORS[GameConfig.GRID[i][j][0]]));
+                    fill(color(COLORS[GameConfig.GRID[i][j][0]]));
+
+
 
                 // Convert index in GameConfig.GRID to global pixel location.
                 player_global_pixel_position_x = i * GameConfig.BLOCK_SIZE;
@@ -270,7 +290,7 @@ function updateGrid() {
         let x = 0;
         let y = 0;
 
-        let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
+        let player_pos_on_grid = players[i].getPlayerPositionOnGrid(players[i].position);
         x = player_pos_on_grid.x;
         y = player_pos_on_grid.y;
 
@@ -376,7 +396,7 @@ function checkFilling()
     {
 
 
-        let player_pos_on_grid = players[i].getPlayerPositionOnGrid();
+        let player_pos_on_grid = players[i].getPlayerPositionOnGrid(players[i].position);
         if((GameConfig.GRID[player_pos_on_grid.x][player_pos_on_grid.y][0] === players[i].ID+2))
         {
 

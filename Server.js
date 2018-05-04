@@ -136,6 +136,8 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
         for (let j = player_data.pos_y - 1; j <= player_data.pos_y + 1; j++) {
             rooms[room_name].grid[i][j][0] = player_data.ID + 2;
+            if(player_data.ID==null)
+                console.log("here !!!");
         }
     }
 
@@ -293,17 +295,28 @@ function simulate(room_name) {
         while (delta > 0) {
             let indexI;
             let indexJ;
+            let tailPos;
             //console.log("Last pos X: ", last_pos.x, "Dir_x: ", player.dir_x, "---------");
             if (player.dir_x != 0) {
+                tailPos={"x":last_pos_x_or_y,"y":player.pos_y};
                 indexI=Math.round(last_pos_x_or_y + (0.5 * player.dir_x));
                 indexJ=Math.round(player.pos_y + (0.5 * player.dir_y));
                 // cell = rooms[room_name].grid[Math.round(last_pos_x_or_y + (0.5 * player.dir_x))][Math.round(player.pos_y + (0.5 * player.dir_y))];
             } else {
+                tailPos={"x":player.pos_x,"y":last_pos_x_or_y};
                 indexI=Math.round(player.pos_x + (0.5 * player.dir_x));
                 indexJ=Math.round(last_pos_x_or_y + (0.5 * player.dir_y));
                 // cell = rooms[room_name].grid[Math.round(player.pos_x + (0.5 * player.dir_x))][Math.round(last_pos_x_or_y + (0.5 * player.dir_y))];
             }
 
+            // Put tail in the back
+            //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
+            let player_pos_on_grid = getPlayerPositionOnGrid(player,tailPos);
+            let xx = player_pos_on_grid.x;
+            let yy = player_pos_on_grid.y;
+            if(rooms[room_name].grid[xx][yy][0] != player.ID + 2) {
+                rooms[room_name].grid[xx][yy][0] = player.ID + 1;
+            }
 
             // Change position according to moving direction
             if (delta > 1) {
@@ -315,20 +328,25 @@ function simulate(room_name) {
                 }
             }
 
-            if (rooms[room_name].grid[indexI][indexJ] == 1 || rooms[room_name].grid[indexI][indexJ] == player.ID + 1) {    // Border || Own tail
+
+
+            if (rooms[room_name].grid[indexI][indexJ][0] == 1 || rooms[room_name].grid[indexI][indexJ][0] == player.ID + 1) {    // Border || Own tail
                 // Dies
-                console.log("Player Died!!");
-                //removeDeadPlayer(room_name, indx);
+
+                //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
+                if ( (player.dir_x != 0 && tailPos.x != Math.round(tailPos.x) ) || ( player.dir_y != 0 && tailPos.y != Math.round(tailPos.y)) ) {
+
+                    console.log("Player Died!!");
+                    //removeDeadPlayer(room_name, indx);
+                }
+
+
             }
-            else if (rooms[room_name].grid[indexI][indexJ] == player.ID + 2) {     // Own block
+            else if (rooms[room_name].grid[indexI][indexJ][0] == player.ID + 2) {     // Own block
                 //TODO: Fill path
             }
-            else if (rooms[room_name].grid[indexI][indexJ] == 0 || rooms[room_name].grid[indexI][indexJ] % 4 == 0) {     // Empty || block
-                // Put tail
-                let player_pos_on_grid = getPlayerPositionOnGrid(player);
-                let xx = player_pos_on_grid.x;
-                let yy = player_pos_on_grid.y;
-                rooms[room_name].grid[xx][yy] = player.ID + 1;
+            else if (rooms[room_name].grid[indexI][indexJ][0] == 0 || rooms[room_name].grid[indexI][indexJ][0] % 4 == 0) {     // Empty || block
+
 
             }
             else if (rooms[room_name].grid[indexI][indexJ][0] != player.ID) {
@@ -341,9 +359,9 @@ function simulate(room_name) {
                     killedPlayerID = rooms[room_name].grid[indexI][indexJ][0]-1;
                 }
                 // Kill
-                console.log(player.ID);
                 console.log(rooms[room_name].grid[indexI][indexJ][0]);
-                removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
+                //console.log(rooms[room_name].grid[indexI][indexJ][0]);
+                //removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
                 // if (delta < 1) {
                 //     rooms[room_name].grid[indexI][indexJ][0] = player.ID;
                 // }
@@ -376,14 +394,14 @@ function simulate(room_name) {
         player.pos_y += speed * player.dir_y * delta_time;
 
 
-        fixDir(player, last_pos,room_name);
+
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.pos_x - last_pos.x);
         let y_delta = Math.abs(player.pos_y - last_pos.y);
         // Move on skipped cells in x and in y
         MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx);
         MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx);
-
+        fixDir(player, last_pos,room_name);
 
         if (dummyVariable == null) {
             dummyVariable = "test";
@@ -455,8 +473,8 @@ function fixDir(player, last_pos,room_name) {
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
-                    "player_pos": [player.pos_x, player.pos_y]//,
-                   // "grid":rooms[room_name].grid
+                    "player_pos": [player.pos_x, player.pos_y],
+                   "grid":rooms[room_name].grid
                 });
             }
         }
@@ -484,6 +502,7 @@ function removeDeadPlayer(room_name, player) {
                 rooms[room_name].grid[i][j][0] == playerID + 1 ||
                 rooms[room_name].grid[i][j][0] == playerID + 2) {
                 rooms[room_name].grid[i][j][0] = 0;
+                rooms[room_name].grid[i][j][1] = 0;
             }
         }
     }
@@ -508,7 +527,7 @@ function getSocketIDfromPlayerID(playerID, room_name) {
     }
 }
 
-function getPlayerPositionOnGrid(player){
+function getPlayerPositionOnGrid(player,last_pos){
 
     let x = 0;
     let y = 0;
@@ -517,34 +536,33 @@ function getPlayerPositionOnGrid(player){
     if (player.dir_x == 0 && player.dir_y == 1)
     {
 
-        x = Math.round(player.pos_x);
-        y = Math.floor(player.pos_y);
+        x = Math.round(last_pos.x);
+        y = Math.floor(last_pos.y);
     }
 
     // this moving up.
     if (player.dir_x == 0 && player.dir_y == -1)
     {
 
-        x = Math.round(player.pos_x);
-        y = Math.ceil(player.pos_y);
+        x = Math.round(last_pos.x);
+        y = Math.ceil(last_pos.y);
 
     }
 
-    // this moving left.
-    if (player.dir_x == -1 && player.dir_y == 0)
+    if (player.dir_x == 1 && player.dir_y == 0)
     {
 
-        x = Math.floor(player.pos_x);
-        y = Math.round(player.pos_y);
+        x = Math.floor(last_pos.x);
+        y = Math.round(last_pos.y);
 
     }
 
     // this moving right.
-    if (player.dir_x == 1 && player.dir_y == 0)
+    if (player.dir_x == -1 && player.dir_y == 0)
     {
 
-        x = Math.ceil(player.pos_x);
-        y = Math.round(player.pos_y);
+        x = Math.ceil(last_pos.x);
+        y = Math.round(last_pos.y);
 
     }
     return {"x":x,"y":y};

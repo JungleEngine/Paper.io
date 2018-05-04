@@ -136,6 +136,7 @@ function onPlayerChangeDir(data)
     players[data["player_ID"]].updateKeyPressFromDir();
 
     // GameConfig.GRID = data.grid;
+    // console.log(GameConfig.GRID);
     // To avoid fixing direction more than one time per loop.
 //    players[data["player_ID"]].direction_already_fixed = true;
 
