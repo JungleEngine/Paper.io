@@ -107,7 +107,7 @@ function initializeLocal() {
    return false; // prevent any default behavior
  }
 function draw() {
-    GameConfig.UPDATE_SPEED(getFrameRate(), 5);
+    GameConfig.UPDATE_SPEED(getFrameRate());
     // Make speed adapts to change in frame rate
 
     //speed  =  block_size / 200 * (1000/frameRate())

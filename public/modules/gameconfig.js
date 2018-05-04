@@ -4,9 +4,10 @@ GameConfig = {
     PAUSE :false,
     GRID : [],
     SPEED : null,
-    UPDATE_SPEED : function(frame_rate, speed_value)
+    BLOCK_SPEED:5,
+    UPDATE_SPEED : function(frame_rate)
     {
-        GameConfig.SPEED = speed_value * GameConfig.BLOCK_SIZE  /frame_rate ;
+        GameConfig.SPEED = GameConfig.BLOCK_SPEED * GameConfig.BLOCK_SIZE  /frame_rate ;
 
     }
 };

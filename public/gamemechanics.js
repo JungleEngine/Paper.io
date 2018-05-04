@@ -104,14 +104,26 @@ function simulate() {
     validateKeyPress();
     for(let indx of Object.keys(players)){
 
-
-
         let player = players[indx];
         player.updateDirFromKeyPress();
         let last_pos = {"x": player.position.x, "y": player.position.y};
 
-        player.position.x += player.dir.x * GameConfig.SPEED;
-        player.position.y += player.dir.y * GameConfig.SPEED;
+        let time = window.performance.now();
+        // First run
+        if (!player.last_time_stamp) {
+            player.last_time_stamp = time;
+            //continue;
+        }
+
+
+        let delta_time = (time - player.last_time_stamp) / 1000;
+        player.last_time_stamp = time;
+
+        player.position.x += player.dir.x * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
+        player.position.y += player.dir.y * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
+
+        // player.position.x += player.dir.x * GameConfig.SPEED;
+        // player.position.y += player.dir.y * GameConfig.SPEED;
 
         if(dummyVariable==null) {
             dummyVariable="test";
@@ -124,8 +136,6 @@ function simulate() {
                 // console.log("Player direction: " , player.dir);
             },500);
         }
-
-
 
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.position.x - last_pos.x);
