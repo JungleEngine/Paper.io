@@ -135,7 +135,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     // Set initial 3 cells for player
     for (let i = player_data.pos_x - 1; i <= player_data.pos_x + 1; i++) {
         for (let j = player_data.pos_y - 1; j <= player_data.pos_y + 1; j++) {
-            rooms[room_name].grid[i][j] = player_data.ID + 2;
+            rooms[room_name].grid[i][j][0] = player_data.ID + 2;
         }
     }
 
@@ -158,24 +158,32 @@ function initNewRoom(room_name, socket_id) {
     var grid = [];
 
     // Initialize the grid with zeros.
-    for (let i = 0; i < canvas_length; ++i) {
+    for (let i = 0; i < canvas_length; ++i)
+    {
+
         grid[i] = [];
-        for (let j = 0; j < canvas_length; ++j) {
-            grid[i][j] = 0;
+        for (let j = 0; j < canvas_length; ++j)
+        {
+
+            grid[i][j] = [];
+            grid[i][j][0] = 0;
+            grid[i][j][1] = 0;
+
         }
+
     }
 
     // Place game borders in grid.
     let border_start = grid_start - 1;
     let border_end = grid_end + 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[i][border_start] = 1;
+        grid[i][border_start][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[i][border_end] = 1;
+        grid[i][border_end][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[border_start][i] = 1;
+        grid[border_start][i][0] = 1;
     for (let i = border_start; i <= border_end; ++i)
-        grid[border_end][i] = 1;
+        grid[border_end][i][0] = 1;
 
 
     // Create new room.
@@ -323,21 +331,22 @@ function simulate(room_name) {
                 rooms[room_name].grid[xx][yy] = player.ID + 1;
 
             }
-            else if (rooms[room_name].grid[indexI][indexJ] != player.ID) {
+            else if (rooms[room_name].grid[indexI][indexJ][0] != player.ID) {
                 let killedPlayerID;
-                if (rooms[room_name].grid[indexI][indexJ] % 4 == 2)//other player id
+                if (rooms[room_name].grid[indexI][indexJ][0] % 4 == 2)//other player id
                 {
-                    killedPlayerID = rooms[room_name].grid[indexI][indexJ];
+                    killedPlayerID = rooms[room_name].grid[indexI][indexJ][0];
                 } else {
-                    killedPlayerID = rooms[room_name].grid[indexI][indexJ] - 1;
+
+                    killedPlayerID = rooms[room_name].grid[indexI][indexJ][0]-1;
                 }
                 // Kill
                 console.log(player.ID);
-                console.log(rooms[room_name].grid[indexI][indexJ]);
+                console.log(rooms[room_name].grid[indexI][indexJ][0]);
                 removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
-                if (delta < 1) {
-                    rooms[room_name].grid[indexI][indexJ] = player.ID;
-                }
+                // if (delta < 1) {
+                //     rooms[room_name].grid[indexI][indexJ][0] = player.ID;
+                // }
             }
             delta--;
         }
@@ -471,10 +480,10 @@ function removeDeadPlayer(room_name, player) {
     // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {
-            if (rooms[room_name].grid[i][j] == playerID ||
-                rooms[room_name].grid[i][j] == playerID + 1 ||
-                rooms[room_name].grid[i][j] == playerID + 2) {
-                rooms[room_name].grid[i][j] = 0;
+            if (rooms[room_name].grid[i][j][0] == playerID ||
+                rooms[room_name].grid[i][j][0] == playerID + 1 ||
+                rooms[room_name].grid[i][j][0] == playerID + 2) {
+                rooms[room_name].grid[i][j][0] = 0;
             }
         }
     }
