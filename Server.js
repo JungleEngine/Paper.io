@@ -509,6 +509,7 @@ function removeDeadPlayer(room_name, player) {
 
     // Remove dead player from room
     delete rooms[room_name].players[player];
+
 }
 
 

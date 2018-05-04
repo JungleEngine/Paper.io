@@ -193,7 +193,7 @@ function validateKeyPress()
         updates["player_pos_normalized"] = players[current_player_ID].position / block_size;
 
         emitUpdatesToServer(updates);
-
+        players[current_player_ID].wait_server_response = true;
 
     }
 
