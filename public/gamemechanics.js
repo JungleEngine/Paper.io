@@ -51,8 +51,9 @@ function simulate() {
             let player_pos_on_grid = player.getPlayerPositionOnGrid(tailPos);
             let xx = player_pos_on_grid.x;
             let yy = player_pos_on_grid.y;
-            if (GameConfig.GRID[xx][yy][0] != player.ID + 2)
+            if (GameConfig.GRID[xx][yy][0] != player.ID + 2) {
                 GameConfig.GRID[xx][yy][0] = player.ID + 1;
+            }
 
             // Change position according to moving direction
             if (delta > GameConfig.BLOCK_SIZE) {
@@ -63,7 +64,13 @@ function simulate() {
                     last_pos_x_or_y -= GameConfig.BLOCK_SIZE;
                 }
             }
-
+            let head = {};
+            head.x = tailPos.x + (0.5 * player.dir_x);
+            head.y = tailPos.y + (0.5 * player.dir_y);
+            if (Math.round(head.x) === player.fix_pos_x && Math.round(head.y) === player.fix_pos_y) {
+                console.log("The rare case has happened");
+                return ;
+            }
             if (GameConfig.GRID[indexI][indexJ][0] === 1 || GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Border || Own tail
                 // Dies
                 //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
@@ -108,24 +115,25 @@ function simulate() {
 
         let time = window.performance.now();
         // First run
-        if (!player.last_time_stamp) {
-            player.last_time_stamp = time;
-            //continue;
-        }
+        // if (!player.last_time_stamp) {
+        //     player.last_time_stamp = time;
+        //     //continue;
+        // }
+        //
+        //
+        // let delta_time = (time - player.last_time_stamp) / 1000;
+        // player.last_time_stamp = time;
+        //
+        // player.position.x += player.dir.x * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
+        // player.position.y += player.dir.y * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
 
-
-        let delta_time = (time - player.last_time_stamp) / 1000;
-        player.last_time_stamp = time;
-
-        player.position.x += player.dir.x * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
-        player.position.y += player.dir.y * GameConfig.BLOCK_SPEED*GameConfig.BLOCK_SIZE*delta_time;
-
-        // player.position.x += player.dir.x * GameConfig.SPEED;
-        // player.position.y += player.dir.y * GameConfig.SPEED;
+        player.position.x += player.dir.x * GameConfig.SPEED;
+        player.position.y += player.dir.y * GameConfig.SPEED;
 
         // Skipped cells in x and in y
         let x_delta = Math.abs(player.position.x - last_pos.x);
         let y_delta = Math.abs(player.position.y - last_pos.y);
+
 
         // Move on skipped cells in x and in y
         MoveOnCells(x_delta, last_pos.x, last_pos, player.position.x, player, indx);
@@ -384,11 +392,11 @@ function fixDir(player, last_pos) {
 
         }
     }
-    // if(player.position.x/GameConfig.BLOCK_SIZE!=Math.round(player.position.x/GameConfig.BLOCK_SIZE)&&player.position.y/GameConfig.BLOCK_SIZE!=Math.round(player.position.y/GameConfig.BLOCK_SIZE))
-    // {
-    //     player.position.x=Math.round(player.position.x/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
-    //     player.position.y=Math.round(player.position.y/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
-    // }
+    if(player.position.x/GameConfig.BLOCK_SIZE!=Math.round(player.position.x/GameConfig.BLOCK_SIZE)&&player.position.y/GameConfig.BLOCK_SIZE!=Math.round(player.position.y/GameConfig.BLOCK_SIZE))
+    {
+        player.position.x=Math.round(player.position.x/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
+        player.position.y=Math.round(player.position.y/GameConfig.BLOCK_SIZE)*GameConfig.BLOCK_SIZE;
+    }
 }
 
 
