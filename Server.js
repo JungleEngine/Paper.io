@@ -150,6 +150,48 @@ io.on('connection', (socket) => {
 
 });
 
+// Find empty block for player
+function getEmptySpaceForNewPlayer(grid) {
+
+    let valid_pos = true;
+
+    for (let i = grid_start+6; i < grid_end-6; i++) {
+        for (let j = grid_start+6; j < grid_end-6; j++) {
+            valid_pos = true;
+            for(let x = i-4; x<i+4; x++)
+            {
+                for(let y = j-4; y<j+4; y++)
+                {
+
+                    if(grid[x][y][0]!==0)
+                    {
+
+                        valid_pos = false;
+                        break;
+                        console.log(" value ", grid[x][y]);
+
+                    }
+
+                }
+                if(!valid_pos)
+                {
+                    break;
+                }
+
+            }
+            if(valid_pos)
+            {
+
+                return {"x":i, "y":j};
+            }
+
+        }
+
+    }
+
+    return {"x":-1,"y":-1};
+
+}
 
 /**
  * Initialize new position for new connected player.
@@ -171,9 +213,24 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     // console.log("ZZZZ", number_of_players);
 
     //TODO: Find position for new player
-    player_data.pos_x = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
-    player_data.pos_y = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
+    let empty_pos_to_place_player = getEmptySpaceForNewPlayer(rooms[room_name].grid);
+    console.log(" pos ", empty_pos_to_place_player);
 
+    // No empty place to place the player.
+    if(empty_pos_to_place_player.x === -1 || empty_pos_to_place_player.y === -1)
+    {
+
+        console.log(" no place to place the players");
+       player_data.pos_x = 70;
+       player_data.pos_y = 70;
+
+    }
+    else
+    {
+        player_data.pos_x = empty_pos_to_place_player.x;
+        player_data.pos_y = empty_pos_to_place_player.y;
+
+    }
     player_data.last_dir = {"x":1, "y":0};
     player_data.dir_x = 1;
     player_data.dir_y = 0;
@@ -445,7 +502,7 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
             // Kill
             // console.log(rooms[room_name].grid[indexI][indexJ][0]);
             //console.log(rooms[room_name].grid[indexI][indexJ][0]);
-            //removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
+            removeDeadPlayer(room_name, getSocketIDfromPlayerID(killedPlayerID, room_name));
             // if (delta < 1) {
             //     rooms[room_name].grid[indexI][indexJ][0] = player.ID;
             // }
