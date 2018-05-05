@@ -83,7 +83,7 @@ function onPlayerKeyPress(data) {
 
     // Update target player data.
     players[data["player_ID"]].updatePlayerKeyPressFromDir(data["player_next_dir"][0], data["player_next_dir"][1]);
-    players[data["player_ID"]].wait_server_response = false;
+
 
     // // Update target player position.
     // players[data["player_ID"]].position.x = data["player_pos"][0] * GameConfig.BLOCK_SIZE;
@@ -93,7 +93,7 @@ function onPlayerKeyPress(data) {
     // Update fix position
     players[data["player_ID"]].fix_position.x = data["player_fix_pos"][0] * GameConfig.BLOCK_SIZE;
     players[data["player_ID"]].fix_position.y = data["player_fix_pos"][1] * GameConfig.BLOCK_SIZE;
-
+    players[data["player_ID"]].wait_server_response = false;
     // Update player KEY_PRESSED from dir.
 
     // To avoid fixing direction more than one time per loop.

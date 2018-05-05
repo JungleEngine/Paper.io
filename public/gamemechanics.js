@@ -202,7 +202,7 @@ function validateKeyPress() {
         keyboardLocked = true;
         setTimeout(function() {
             keyboardLocked = false;
-        }, 50);
+        }, 90);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
@@ -323,22 +323,22 @@ function fixDir(player, last_pos) {
     if (player.dir.x !== player.next_dir.x || player.dir.y !== player.next_dir.y) {
 
 
-        if(player.wait_server_response==false)
-        {
-            if ( ((player.fix_position.x/GameConfig.BLOCK_SIZE - Math.round(head.x))*player.dir.x) < 0 ||  ((player.fix_position.y/GameConfig.BLOCK_SIZE- Math.round(head.y))*player.dir.y) < 0) {
-                console.log("The rare case has happened");
-
-                let diff = Math.abs(player.position.x - player.fix_position.x)+Math.abs(player.position.y - player.fix_position.y);
-
-                player.position.x=player.fix_position.x+diff*player.next_dir.x;
-                player.position.y=player.fix_position.y+diff*player.next_dir.y;
-
-                player.dir.x = player.next_dir.x;
-                player.dir.y = player.next_dir.y;
-
-                return;
-            }
-        }
+        // if(player.wait_server_response==false)
+        // {
+        //     if ( ((player.fix_position.x/GameConfig.BLOCK_SIZE - Math.round(head.x))*player.dir.x) < 0 ||  ((player.fix_position.y/GameConfig.BLOCK_SIZE- Math.round(head.y))*player.dir.y) < 0) {
+        //         console.log("The rare case has happened");
+        //
+        //         let diff = Math.abs(player.position.x - player.fix_position.x)+Math.abs(player.position.y - player.fix_position.y);
+        //
+        //         player.position.x=player.fix_position.x+diff*player.next_dir.x;
+        //         player.position.y=player.fix_position.y+diff*player.next_dir.y;
+        //
+        //         player.dir.x = player.next_dir.x;
+        //         player.dir.y = player.next_dir.y;
+        //
+        //         return;
+        //     }
+        // }
         // if (
 
         //     //Crossed Cell Right
