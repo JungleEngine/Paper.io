@@ -370,6 +370,7 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
 
                 console.log("Player hit border!!");
                 removeDeadPlayer(room_name, indx);
+                return false;
             }
 
 
@@ -698,8 +699,10 @@ function simulate() {
 
 
         // Move on skipped cells in x and in y
-        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name);
-        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name);
+        if(MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name)!=null)
+            continue;
+        if(MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name)!=null)
+            continue;
         // Change direction when reaching the end of a cell.
         fixDir(player, last_pos, room_name);
 
@@ -816,6 +819,8 @@ function removeDeadPlayer(room_name, player) {
 
     console.log("Player " + player + " died!");
 
+    console.log(room_name);
+    console.log()
     if(rooms[room_name]==null)
     {
         console.log("no room matches the room of the dead player");
@@ -846,6 +851,8 @@ function removeDeadPlayer(room_name, player) {
     rooms[room_name].next_available_ID = Math.max(2, rooms[room_name].next_available_ID - 4);
 
     // Remove dead player from room
+    // delete rooms[room_name].players[player];
+    // rooms[room_name].players.splice(player,1);
     delete rooms[room_name].players[player];
 
 }

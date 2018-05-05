@@ -64,13 +64,7 @@ function simulate() {
                     last_pos_x_or_y -= GameConfig.BLOCK_SIZE;
                 }
             }
-            let head = {};
-            head.x = tailPos.x + (0.5 * player.dir.x);
-            head.y = tailPos.y + (0.5 * player.dir.y);
-            if ( (player.fix_pos_x-Math.round(head.x))*player.dir.x < 0 ||  (player.fix_pos_y- Math.round(head.y))*player.dir.y < 0) {
-                console.log("The rare case has happened");
-                return ;
-            }
+
             if (GameConfig.GRID[indexI][indexJ][0] === 1 || GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Border || Own tail
                 // Dies
                 //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
@@ -347,6 +341,10 @@ function fixDir(player, last_pos) {
 
 
 
+    if ( ((player.fix_pos_x/GameConfig.BLOCK_SIZE - Math.round(head.x))*player.dir.x) < 0 ||  ((player.fix_pos_y/GameConfig.BLOCK_SIZE- Math.round(head.y))*player.dir.y) < 0) {
+        console.log("The rare case has happened");
+        return ;
+    }
     // If direction changed
     if (player.dir.x !== player.next_dir.x || player.dir.y !== player.next_dir.y) {
 
