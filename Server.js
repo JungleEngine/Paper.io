@@ -50,10 +50,10 @@ io.on('connection', (socket) => {
     });
 
     socket.onclose = function(reason) {
-        console.log(socket.id);
+        //console.log(socket.id);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
-        console.log(rooms_keys);
+       // console.log(rooms_keys);
         removeDeadPlayer(rooms_keys[rooms_keys.length - 1], socket.id);
         //console.log(socket.adapter.sids[socket.id]);
         Object.getPrototypeOf(this).onclose.call(this, reason);
@@ -828,8 +828,8 @@ function removeDeadPlayer(room_name, player) {
     }
 
     playerID = rooms[room_name].players[player].ID;
-    console.log(rooms[room_name].players[player]);
-    console.log(playerID);
+    //console.log(rooms[room_name].players[player]);
+    //console.log(playerID);
     // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {
