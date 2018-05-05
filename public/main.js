@@ -7,11 +7,12 @@ var number_of_blocks_height;
 var number_of_blocks_width;
 var player;
 
-var COLORS = [ 'empty', '#edeff4'
+var COLORS = ['empty', '#edeff4'
     // Blue Player.
     , '#0041a1', '#076bff', '#d81178 ', '#002c6e'
     // Red Player.
-    , '#190000', '#ff3333', '#660000', '#ff8080' ];
+    , '#190000', '#ff3333', '#660000', '#ff8080'
+];
 
 var socket;
 var currentTime = 0;
@@ -61,8 +62,8 @@ function setup() {
             btn.name = "but";
             btn.width = 200;
             btn.height = 200;
-            document.body.insertAdjacentHTML('beforeend',"<h1> room name  </h1>");
-            document.body.insertAdjacentHTML('beforeend',"<input type='text' id='room_name' >");
+            document.body.insertAdjacentHTML('beforeend', "<h1>ROOM NAME</h1>");
+            document.body.insertAdjacentHTML('beforeend', "<input type='text' id='room_name' >");
 
             document.body.appendChild(btn);
 
@@ -71,7 +72,7 @@ function setup() {
                 btn.parentNode.removeChild(btn);
 
                 let room_name = document.getElementById('room_name').value;
-                document.body.innerHTML= "";
+                document.body.innerHTML = "";
 
 
                 socket.emit("join_room", room_name);
@@ -80,7 +81,7 @@ function setup() {
                 socket.on("initialize_game", initGame);
 
                 // New player joined the room.
-                socket.on("new_player",newPlayerJoinedTheRoom);
+                socket.on("new_player", newPlayerJoinedTheRoom);
                 initializeLocal();
             }
         });
@@ -108,22 +109,23 @@ function initializeLocal() {
     createCanvas(windowWidth, windowHeight);
 }
 
- function keyReleased() {
-   if (keyCode == 87) {
-       GameConfig.PAUSE = !GameConfig.PAUSE;
-       pauseServer();
-   }
-   return false; // prevent any default behavior
- }
+function keyReleased() {
+    if (keyCode == 87) {
+        GameConfig.PAUSE = !GameConfig.PAUSE;
+        pauseServer();
+    }
+    return false; // prevent any default behavior
+}
+
 function draw() {
     GameConfig.UPDATE_SPEED(getFrameRate());
     // Make speed adapts to change in frame rate
 
     //speed  =  block_size / 200 * (1000/frameRate())
 
-    if (startGame ) {
+    if (startGame) {
 
-        if(GameConfig.PAUSE)
+        if (GameConfig.PAUSE)
             return;
 
         // Clear screen.

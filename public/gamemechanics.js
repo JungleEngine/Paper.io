@@ -65,19 +65,26 @@ function simulate() {
                 }
             }
 
-            if (GameConfig.GRID[indexI][indexJ][0] === 1 || GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Border || Own tail
+            if (GameConfig.GRID[indexI][indexJ][0] === 1) { // Border
+                // Dies
+
+                    console.log("Player Died!!");
+                    removeDeadPlayer(player.ID);
+                    return false;
+
+            } else if (GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Own tail
                 // Dies
                 //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
                 if ((player.dir.x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir.y != 0 && tailPos.y != Math.round(tailPos.y))) {
                     console.log("Player Died!!");
                     //removeDeadPlayer(player.ID);
+                    //return false;
                 }
 
             } else if (GameConfig.GRID[indexI][indexJ][0] == player.ID + 2) { // Own block
                 //TODO: Fill path
             } else if (GameConfig.GRID[indexI][indexJ][0] == 0 || GameConfig.GRID[indexI][indexJ][0] % 4 == 0) { // Empty || block
                 // Put tail
-
 
 
             } else if (GameConfig.GRID[indexI][indexJ][0] != player.ID) {
@@ -130,9 +137,14 @@ function simulate() {
 
 
         // Move on skipped cells in x and in y
-        MoveOnCells(x_delta, last_pos.x, last_pos, player.position.x, player, indx);
-        MoveOnCells(y_delta, last_pos.y, last_pos, player.position.y, player, indx);
-
+        let playerDied = MoveOnCells(x_delta, last_pos.x, last_pos, player.position.x, player, indx);
+        if(playerDied===false) {
+            continue;
+        }
+        playerDied= MoveOnCells(y_delta, last_pos.y, last_pos, player.position.y, player, indx);
+        if(playerDied===false) {
+            continue;
+        }
         // Change direction when reaching the end of a cell.
         fixDir(player, last_pos);
 
