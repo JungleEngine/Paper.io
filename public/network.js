@@ -129,7 +129,7 @@ function onPlayerChangeDir(data) {
 
     }
     // Update player KEY_PRESSED from dir.
-    players[data["player_ID"]].updateKeyPressFromDir();
+    //players[data["player_ID"]].updateKeyPressFromDir();
     players[data["player_ID"]].wait_server_response = false;
 
     // To avoid fixing direction more than one time per loop.
@@ -153,7 +153,7 @@ function newPlayerJoinedTheRoom(data) {
 
     players[player.ID] = player;
 
-    players[player.ID].updateKeyPressFromDir();
+    //players[player.ID].updateKeyPressFromDir();
     players[player.ID].record_path = true;
 }
 
