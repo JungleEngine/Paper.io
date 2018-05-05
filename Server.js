@@ -628,7 +628,7 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
 
             // Send Updates to other players.
             io.to(room_name).emit("area_filling",{"path_vector": object_to_send_to_players,
-            "color_index":player_ID + 2, "grid":rooms[room_name].grid});
+            "color_index":player_ID + 2});
 
             // Clear all arrays.
             rooms[room_name].players[socket_ID].path_vector = [];
