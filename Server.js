@@ -873,7 +873,7 @@ function removeDeadPlayer(room_name, player) {
     }
 
     // Make this player slot in room available.
-    rooms[room_name].next_available_ID = Math.max(2, rooms[room_name].next_available_ID - 4);
+    rooms[room_name].next_available_ID = Math.max(2, rooms[room_name].next_available_ID - 8);
 
     // Remove dead player from room
     // delete rooms[room_name].players[player];
