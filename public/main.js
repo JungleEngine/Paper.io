@@ -7,11 +7,23 @@ var number_of_blocks_height;
 var number_of_blocks_width;
 var player;
 
+// player_color : tail : block_color : shadow.
 var COLORS = ['empty', '#edeff4'
     // Blue Player.
     , '#0041a1', '#076bff', '#d81178 ', '#002c6e'
     // Red Player.
-    , '#190000', '#ff3333', '#660000', '#ff8080'
+    , '#190000', '#ff3333', '#020151', '#ff8080'
+    // Green player.
+    , '#0a3801', '#49f925', '#0a2804','#245b19'
+    // Purple.
+    , '#450877', '#8c10f2', '#23073a', '#23073a'
+    // Yellow.
+    , '#7b8710', '#c0d12e', '#454c06', '#9daa23'
+    // Pink.
+    , '#991d5b', '#ff63b1', '#590730', '#a8346e'
+    // Light blue.
+    , '#196852', '#56efc6', '#023a2b', '#4eb297'
+
 ];
 
 var socket;
