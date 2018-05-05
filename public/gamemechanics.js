@@ -65,8 +65,8 @@ function simulate() {
                 }
             }
             let head = {};
-            head.x = tailPos.x + (0.5 * player.dir_x);
-            head.y = tailPos.y + (0.5 * player.dir_y);
+            head.x = tailPos.x + (0.5 * player.dir.x);
+            head.y = tailPos.y + (0.5 * player.dir.y);
             if ( (player.fix_pos_x-Math.round(head.x))*player.dir.x < 0 ||  (player.fix_pos_y- Math.round(head.y))*player.dir.y < 0) {
                 console.log("The rare case has happened");
                 return ;
