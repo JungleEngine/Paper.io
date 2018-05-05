@@ -5,10 +5,30 @@ GameConfig = {
     GRID : [],
     SPEED : null,
     BLOCK_SPEED:5,
+    GRID_START : 50,
+    GRID_END : 150,
 
     UPDATE_SPEED : function(frame_rate)
     {
         GameConfig.SPEED = GameConfig.BLOCK_SPEED * GameConfig.BLOCK_SIZE  /frame_rate ;
+
+    },
+
+    REMOVE_DEAD_PLAYER : function(playerID)
+    {
+
+    for (let i = this.GRID_START; i < this.GRID_END; i++)
+        for (let j = this.GRID_START; j < this.GRID_END; j++) {
+            // If current cell is of a dead player then clear it.
+            if (GameConfig.GRID[i][j][0] === playerID ||
+                GameConfig.GRID[i][j][0] === playerID + 1 ||
+                GameConfig.GRID[i][j][0] === playerID + 2) {
+                GameConfig.GRID[i][j][0] = 0;
+
+            }
+        }
+
+
 
     },
 

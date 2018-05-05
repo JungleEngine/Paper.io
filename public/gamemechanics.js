@@ -68,15 +68,15 @@ function simulate() {
             if (GameConfig.GRID[indexI][indexJ][0] === 1) { // Border
                 // Dies
 
-                    console.log("Player Died!!");
+                    //console.log("Player Died!!");
                     //removeDeadPlayer(player.ID);
-                    return false;
+                 //   return false;
 
             } else if (GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Own tail
                 // Dies
                 //to ensure that the player isn't right on the border of another cell so that he doesn't step on his own tail left behind
                 if ((player.dir.x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir.y != 0 && tailPos.y != Math.round(tailPos.y))) {
-                    console.log("Player Died!!");
+                    //console.log("Player Died!!");
                     //removeDeadPlayer(player.ID);
                     //return false;
                 }

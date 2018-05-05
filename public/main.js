@@ -92,6 +92,7 @@ function setup() {
                 socket.on("wrong_credentials",handleWrongCredentials);
                 // New player joined the room.
                 socket.on("new_player", newPlayerJoinedTheRoom);
+                socket.on("player_died", playerDied);
                 initializeLocal();
             }
         });

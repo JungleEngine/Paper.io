@@ -318,10 +318,13 @@ function addPlayer(room_name,username, socket_id) {
         let player_data = initNewRoom(room_name, socket_id);
         player_parameters.player_id = player_data.ID;
         player_parameters.grid = rooms[room_name].grid;
+        player_parameters.username = username;
+
     } else {
         let player_data = updateCurrentRoom(room_name, socket_id);
         player_parameters = Object.assign({}, player_data);
         player_parameters.player_id = player_data.ID;
+        player_parameters.username = username;
         player_parameters.grid = rooms[room_name].grid;
         sendNewPlayerToRoom(room_name, player_parameters);
     }
@@ -419,8 +422,8 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
             if ((player.dir_x != 0 && tailPos.x != Math.round(tailPos.x)) || (player.dir_y != 0 && tailPos.y != Math.round(tailPos.y))) {
 
                 console.log("Player stepped on his own tail!!");
-                //removeDeadPlayer(room_name, indx);
-                //return false;
+                removeDeadPlayer(room_name, indx);
+                return false;
             }
 
 
@@ -916,6 +919,7 @@ function removeDeadPlayer(room_name, player) {
     // Remove dead player from room
     // delete rooms[room_name].players[player];
     // rooms[room_name].players.splice(player,1);
+    io.to(room_name).emit("player_died",{"player_ID":playerID})
     delete rooms[room_name].players[player];
 
 }

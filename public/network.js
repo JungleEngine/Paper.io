@@ -154,6 +154,7 @@ function newPlayerJoinedTheRoom(data) {
 
     players[player.ID] = player;
     players[player.ID].username = data["username"];
+    console.log(" username , ", players[player.ID].username);
     //players[player.ID].updateKeyPressFromDir();
     players[player.ID].record_path = true;
 }
@@ -168,6 +169,18 @@ function onPlayerFillArea(data)
     //GameConfig.GRID = data.grid;
     //console.log(" path = :",data.record_path);
     GameConfig.FILL(path_vector, color_index);
+}
+
+function playerDied(data)
+{
+
+    console.log("player died with name  ", players[data.player_ID].username);
+    // Delete dead player from map of players.
+    delete players[data.player_ID];
+
+    // Remove this dead player from grid.
+    GameConfig.REMOVE_DEAD_PLAYER(data.player_ID);
+
 }
 
 function handleWrongCredentials(data)
