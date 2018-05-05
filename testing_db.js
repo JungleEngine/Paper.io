@@ -1,11 +1,11 @@
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(':paperio:');
+var db = new sqlite3.Database('paperio');
 
 db.serialize(function() {
 
     db.run("DELETE from users");
-    // create table if first time.
-   // db.run("CREATE TABLE users (username TEXT, password TEXT)");
+    //create table if first time.
+    //db.run("CREATE TABLE users (username TEXT, password TEXT)");
 
     var stmt = db.prepare("INSERT INTO users VALUES (?,?)");
 

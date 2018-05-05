@@ -3,7 +3,7 @@
 
 // Database.
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(':paperio:');
+var db = new sqlite3.Database('paperio');
 
 // Express server.
 var express = require('express');
