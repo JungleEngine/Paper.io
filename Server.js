@@ -50,10 +50,10 @@ io.on('connection', (socket) => {
     });
 
     socket.onclose = function(reason) {
-        console.log(socket.id);
+        //console.log(socket.id);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
-        console.log(rooms_keys);
+       // console.log(rooms_keys);
         removeDeadPlayer(rooms_keys[rooms_keys.length - 1], socket.id);
         //console.log(socket.adapter.sids[socket.id]);
         Object.getPrototypeOf(this).onclose.call(this, reason);
@@ -505,11 +505,14 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
     // console.log("dir.x : ",player.dir_x, "dir.y : ",player.dir_y);
     // console.log("grid of pos - dir : ",rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0]);
         // Check if player left his own area.
-        if ((rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] === player_ID + 1) &&
+        if ((rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] !== player_ID + 2) &&
             (rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0] ===
-                player_ID + 2) && !player.record_path) {
+                player_ID + 2) && !player.record_path ) {
 
-            console.log("player leaved grid ");
+            console.log(" leaving his grid ");
+            if(player.record_path)
+                return;
+            console.log("player leaved grid  & recorded path = false");
 
             // Should try to fill player area.
             rooms[room_name].players[socket_ID].last_position_on_grid =
@@ -571,7 +574,7 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
                 let pos_y = path[obj].y;
 
                 if (typeof player.path_vector[pos_y] === 'undefined')
-                    rooms[room_name].players[socket_ID].player.path_vector[pos_y] = [];
+                    rooms[room_name].players[socket_ID].path_vector[pos_y] = [];
 
                 if (!player.path_vector[pos_y].includes(pos_x))
                     rooms[room_name].players[socket_ID].path_vector[pos_y].push(pos_x);
@@ -626,7 +629,6 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
             // Send Updates to other players.
             io.to(room_name).emit("area_filling",{"path_vector": object_to_send_to_players,
             "color_index":player_ID + 2});
-            console.log("path_vector " ,rooms[room_name].players[socket_ID].path_vector)
 
             // Clear all arrays.
             rooms[room_name].players[socket_ID].path_vector = [];
@@ -647,6 +649,7 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
 
 
 }
+
 
 
 var dummyVariable = null;
@@ -679,12 +682,14 @@ function simulate() {
         player.pos_x += speed * player.dir_x * delta_time;
         player.pos_y += speed * player.dir_y * delta_time;
 
-        let player_pos_on_grid_x = Math.floor( player.pos_x );
-        let player_pos_on_grid_y = Math.floor( player.pos_y );
+        let pos_on_grid = getPlayerPositionOnGrid(player, {"x":player.pos_x, "y":player.pos_y});
+
+        let player_pos_on_grid_x = pos_on_grid.x;
+        let player_pos_on_grid_y = pos_on_grid.y;
         let player_last_pos_on_grid_x = Math.floor(last_pos.x);
         let player_last_pos_on_grid_y = Math.floor(last_pos.y);
         //
-        // console.log("Player position x: ", player.pos_x);
+        // console.log("Player position x: ", player.pflooros_x);
         // console.log("Player position y: ", player.pos_y);
 
         // Skipped cells in x and in y
@@ -782,12 +787,12 @@ function fixDir(player, last_pos, room_name) {
 
             if (player.new_key != null && player.new_key == true) {
                 player.new_key = false;
-                console.log(" position ", player.pos_x, player.pos_y);
+                // console.log(" position ", player.pos_x, player.pos_y);
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
                     "player_pos": [player.pos_x, player.pos_y]//,
-                    //"grid": rooms[room_name].grid
+                    // "grid": rooms[room_name].grid
 
                 });
             }
@@ -823,8 +828,8 @@ function removeDeadPlayer(room_name, player) {
     }
 
     playerID = rooms[room_name].players[player].ID;
-    console.log(rooms[room_name].players[player]);
-    console.log(playerID);
+    //console.log(rooms[room_name].players[player]);
+    //console.log(playerID);
     // Clear cells of the dead player
     for (let i = grid_start; i < grid_end; i++) {
         for (let j = grid_start; j < grid_end; j++) {

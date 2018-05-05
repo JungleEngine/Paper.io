@@ -160,9 +160,10 @@ function newPlayerJoinedTheRoom(data) {
 function onPlayerFillArea(data)
 {
 
-    console.log("player filled data ", data);
+    //console.log("player filled data ", data);
     let  color_index = data.color_index;
     let path_vector = data.path_vector;
-
+    //console.log(path_vector);
+    //GameConfig.GRID = data.grid;
     GameConfig.FILL(path_vector, color_index);
 }
