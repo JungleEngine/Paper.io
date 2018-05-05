@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
         //console.log(socket.id);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
-       // console.log(rooms_keys);
+        // console.log(rooms_keys);
         removeDeadPlayer(rooms_keys[rooms_keys.length - 1], socket.id);
         //console.log(socket.adapter.sids[socket.id]);
         Object.getPrototypeOf(this).onclose.call(this, reason);
@@ -136,6 +136,8 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     //TODO: Find position for new player
     player_data.pos_x = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
     player_data.pos_y = 70 + Math.round(Math.random() * 20 + 10 * Math.random());
+
+    player_data.last_dir = {"x":1, "y":0};
     player_data.dir_x = 1;
     player_data.dir_y = 0;
     player_data.next_dir_x = 1;
@@ -147,6 +149,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
 
     player_data.fix_pos_x = 0;
     player_data.fix_pos_y = 0;
+    player_data.was_on_his_area = true;
 
     // For filling.
     player_data.record_path = false;
@@ -224,16 +227,16 @@ function initNewRoom(room_name, socket_id) {
     {
         game_started = true;
         async.forever(
-        function(next) {
-            if (GamePaused == false)
-                simulate();
-            setTimeout(function() {
-                next();
-            }, 30)
-        },
-        function(error) {
-            console.log(error);
-        }
+            function(next) {
+                if (GamePaused == false)
+                    simulate();
+                setTimeout(function() {
+                    next();
+                }, 30)
+            },
+            function(error) {
+                console.log(error);
+            }
         );
 
     }
@@ -362,7 +365,7 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
         head.x = tailPos.x + (0.5 * player.dir_x);
         head.y = tailPos.y + (0.5 * player.dir_y);
         if (Math.round(head.x) === player.fix_pos_x && Math.round(head.y) === player.fix_pos_y) {
-        return ;
+            return ;
         }
         if (rooms[room_name].grid[indexI][indexJ][0] == 1) { // Border
             // Dies
@@ -456,6 +459,7 @@ function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, playe
     let queue = [];
     let pos_on_grid = {"x":player_pos_on_grid_x, "y":player_pos_on_grid_y};
     let curr_node = pos_on_grid;
+
     queue.push(pos_on_grid);
     visited[curr_node.x][curr_node.y] = 1;
 
@@ -477,7 +481,7 @@ function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, playe
                 curr_node = parent[[curr_node.x, curr_node.y]];
 
             }
-            //path.push(curr_node);
+            path.push(curr_node);
             return path;
         }
 
@@ -485,7 +489,8 @@ function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, playe
             // TODO:: replace true
             if (visited[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]] === 0 && true) {
 
-                if (rooms[room_name].grid[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]][0] === player.ID + 2) {
+                if (rooms[room_name].grid[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]][0] === player.ID + 2
+                ) {
 
                     visited[curr_node.x + delta_x[i]][curr_node.y + delta_y[i]] = 1;
 
@@ -509,158 +514,166 @@ function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, playe
 
 // Check filling for every player.
 // Store start and end position.
-function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player_ID, socket_ID, player_old_position) {
+function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player_ID, socket_ID) {
 
     let player = rooms[room_name].players[socket_ID];
+
     //
     // console.log(" player_pos.x : ",player_pos_on_grid_x, " pos.y : ", player_pos_on_grid_y);
+
     // console.log("grid : ", rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] );
     // console.log("dir.x : ",player.dir_x, "dir.y : ",player.dir_y);
     // console.log("grid of pos - dir : ",rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0]);
-        // Check if player left his own area.
+    // Check if player left his own area.
+    if(rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] === player_ID+2 && !player.record_path)
+    {
 
-        if ((rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] !== player_ID + 2) &&
-            (rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0] === player_ID + 2)&& !player.record_path ) {
+        rooms[room_name].players[socket_ID].was_on_his_area = true;
+        rooms[room_name].players[socket_ID].last_position_on_grid = {"x":player_pos_on_grid_x, "y":player_pos_on_grid_y};
 
-            console.log(" leaving his grid ");
-            if(player.record_path)
-                return;
-            console.log("player leaved grid  & recorded path = false");
+    }
+    if ((rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] !== player_ID + 2) &&
+        (player.was_on_his_area)&& !player.record_path ) {
+
+        console.log(" leaving his grid ");
+        if(player.record_path)
+            return;
+        console.log("player leaved grid  & recorded path = false");
 
             // Should try to fill player area.
-            rooms[room_name].players[socket_ID].last_position_on_grid =
-                {"x" : player_pos_on_grid_x - player.dir_x,
-                "y": player_pos_on_grid_y - player.dir_y};
-
-            // Player should record its path.
-            rooms[room_name].players[socket_ID].record_path = true;
-
-            // Record this step.
-            if (typeof player.path_vector[player.last_position_on_grid.y] === 'undefined')
-                rooms[room_name].players[socket_ID].path_vector[player.last_position_on_grid.y] = [];
-
-            // Push player last position on grid.
-            if (!player.path_vector[player.last_position_on_grid.y]
-                .includes(player.last_position_on_grid.x))
-                rooms[room_name].players[socket_ID].path_vector[player.last_position_on_grid.y]
-                    .push(player.last_position_on_grid.x);
 
 
-            // Record this step.
-            if (typeof player.path_vector[player_pos_on_grid_y] === 'undefined')
-                rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y] = [];
+        // Player should record its path.
+        rooms[room_name].players[socket_ID].record_path = true;
 
-            // Push player position now.
-            if (!player.path_vector[player_pos_on_grid_y].includes(player_pos_on_grid_x))
+
+
+        // Record this step.
+        if (typeof player.path_vector[player.last_position_on_grid.y] === 'undefined')
+            rooms[room_name].players[socket_ID].path_vector[player.last_position_on_grid.y] = [];
+
+        // Push player last position on grid.
+        if (!player.path_vector[player.last_position_on_grid.y]
+            .includes(player.last_position_on_grid.x))
+            rooms[room_name].players[socket_ID].path_vector[player.last_position_on_grid.y]
+                .push(player.last_position_on_grid.x);
+
+        // Record this step.
+        if (typeof player.path_vector[player_pos_on_grid_y] === 'undefined')
+            rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y] = [];
+
+        // Push player position now.
+        if (!player.path_vector[player_pos_on_grid_y].includes(player_pos_on_grid_x))
             rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y].push(player_pos_on_grid_x);
 
 
+    }
+
+    // Check if player should fill his area.
+    else if (rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] === player_ID + 2)  {
+
+        if (!player.record_path)
+            return;
+
+        console.log("player is back to grid");
+
+        rooms[room_name].players[socket_ID].record_path = false;
+       // console.log("old path ", rooms[room_name].players[socket_ID].path_vector);
+        // Should try to fill player area.
+        let path =tryToFill(room_name, socket_ID, player_pos_on_grid_x, player_pos_on_grid_y);
+        console.log(" bfs path : ", path);
+        console.log("try to fill");
+        rooms[room_name].players[socket_ID].record_path = false;
+
+        // Record this step.
+        if (typeof player.path_vector[player_pos_on_grid_y] === 'undefined')
+            player.path_vector[player_pos_on_grid_y] = [];
+
+        if (!player.path_vector[player_pos_on_grid_y].includes(player_pos_on_grid_x))
+            player.path_vector[player_pos_on_grid_y].push(player_pos_on_grid_x);
+        // console.log(" path vector ", players[i].path_vector);
+
+        //console.log("path", path);
+
+        for (let obj in path) {
+            let pos_x = path[obj].x;
+            let pos_y = path[obj].y;
+
+            if (typeof player.path_vector[pos_y] === 'undefined')
+                rooms[room_name].players[socket_ID].path_vector[pos_y] = [];
+
+            if (!player.path_vector[pos_y].includes(pos_x))
+                rooms[room_name].players[socket_ID].path_vector[pos_y].push(pos_x);
+
         }
 
-        // Check if player should fill his area.
-        else if (rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] === player_ID + 2)  {
 
-            if (!player.record_path)
-                return;
+        let object_to_send_to_players = [];
+        // Filling.
+        for (let y in player.path_vector) {
 
-            console.log("player is back to grid");
+            let x_arr = player.path_vector[y];
 
-            rooms[room_name].players[socket_ID].record_path = false;
+            object_to_send_to_players.push(y);
+            object_to_send_to_players.push(x_arr);
 
-            // Should try to fill player area.
-            let path =tryToFill(room_name, socket_ID, player_pos_on_grid_x, player_pos_on_grid_y);
-            console.log(" bfs path : ", path);
-            console.log("try to fill");
-            rooms[room_name].players[socket_ID].record_path = false;
+            let min_x;
 
-            // Record this step.
+            x_arr.sort();
+            for (let tempx = 0; tempx < x_arr.length - 1; tempx += 2) {
+
+
+                let min_x = Math.min(x_arr[tempx], x_arr[tempx + 1]);
+                let max_x = Math.max(x_arr[tempx], x_arr[tempx + 1]);
+
+                if (min_x === max_x - 1) {
+
+                    rooms[room_name].grid[min_x][y][0] = player_ID + 2;
+                    tempx--;
+                    continue;
+
+                }
+                // Fill between two points.
+                for (let curr_x = min_x; curr_x <= max_x; curr_x++) {
+
+                    rooms[room_name].grid[curr_x][y][0] = player_ID + 2;
+                }
+
+
+            }
+
+            // If odd number of x-values then color the last one.
+            if (x_arr.length % 2 !== 0 || true) {
+
+                rooms[room_name].grid[x_arr[x_arr.length - 1]][y][0] = player_ID + 2;
+
+            }
+
+
+        }
+
+        // Send Updates to other players.
+        io.to(room_name).emit("area_filling",{"path_vector": object_to_send_to_players,
+            "color_index":player_ID + 2});
+        //, "grid":rooms[room_name].grid, "record_path":rooms[room_name].players[socket_ID].path_vector });
+
+        // Clear all arrays.
+        rooms[room_name].players[socket_ID].path_vector = [];
+
+    } else if(rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] !== player_ID+2 && player.record_path){
+
+
+        // True for testing .
+        if (true) {
+
             if (typeof player.path_vector[player_pos_on_grid_y] === 'undefined')
-                player.path_vector[player_pos_on_grid_y] = [];
+                rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y] = [];
 
             if (!player.path_vector[player_pos_on_grid_y].includes(player_pos_on_grid_x))
-                player.path_vector[player_pos_on_grid_y].push(player_pos_on_grid_x);
-            // console.log(" path vector ", players[i].path_vector);
+                rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y].push(player_pos_on_grid_x);
 
-            //console.log("path", path);
-
-            for (let obj in path) {
-                let pos_x = path[obj].x;
-                let pos_y = path[obj].y;
-
-                if (typeof player.path_vector[pos_y] === 'undefined')
-                    rooms[room_name].players[socket_ID].path_vector[pos_y] = [];
-
-                if (!player.path_vector[pos_y].includes(pos_x))
-                    rooms[room_name].players[socket_ID].path_vector[pos_y].push(pos_x);
-
-            }
-
-
-            let object_to_send_to_players = [];
-            // Filling.
-            for (let y in player.path_vector) {
-
-                let x_arr = player.path_vector[y];
-
-                object_to_send_to_players.push(y);
-                object_to_send_to_players.push(x_arr);
-
-                let min_x;
-
-                x_arr.sort();
-                for (let tempx = 0; tempx < x_arr.length - 1; tempx += 2) {
-
-
-                    let min_x = Math.min(x_arr[tempx], x_arr[tempx + 1]);
-                    let max_x = Math.max(x_arr[tempx], x_arr[tempx + 1]);
-
-                    if (min_x === max_x - 1) {
-
-                        rooms[room_name].grid[min_x][y][0] = player_ID + 2;
-                        tempx--;
-                        continue;
-
-                    }
-                    // Fill between two points.
-                    for (let curr_x = min_x; curr_x <= max_x; curr_x++) {
-
-                        rooms[room_name].grid[curr_x][y][0] = player_ID + 2;
-                    }
-
-
-                }
-
-                // If odd number of x-values then color the last one.
-                if (x_arr.length % 2 !== 0 || true) {
-
-                    rooms[room_name].grid[x_arr[x_arr.length - 1]][y][0] = player_ID + 2;
-
-                }
-
-
-            }
-
-            // Send Updates to other players.
-            io.to(room_name).emit("area_filling",{"path_vector": object_to_send_to_players,
-            "color_index":player_ID + 2});
-
-            // Clear all arrays.
-            rooms[room_name].players[socket_ID].path_vector = [];
-
-        } else {
-
-            // True for testing .
-            if (true) {
-
-                if (typeof player.path_vector[player_pos_on_grid_y] === 'undefined')
-                    rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y] = [];
-
-                if (!player.path_vector[player_pos_on_grid_y].includes(player_pos_on_grid_x))
-                    rooms[room_name].players[socket_ID].path_vector[player_pos_on_grid_y].push(player_pos_on_grid_x);
-
-            }
         }
-
+    }
 
 }
 
@@ -673,70 +686,70 @@ function simulate() {
     for(let room_name of Object.keys(rooms))
     {
 
-    let map = rooms[room_name].players;
-    for (let indx of Object.keys(map)) {
+        let map = rooms[room_name].players;
+        for (let indx of Object.keys(map)) {
 
-        let player = map[indx];
-        let last_pos = { "x": player.pos_x, "y": player.pos_y };
-        let time = process.hrtime();
-        let socket_ID = indx;
-        // time = secs * 10^9 + nanoseconds
-        time = time[0] * 1000000000 + time[1];
+            let player = map[indx];
+            let last_pos = { "x": player.pos_x, "y": player.pos_y };
+            let time = process.hrtime();
+            let socket_ID = indx;
+            // time = secs * 10^9 + nanoseconds
+            time = time[0] * 1000000000 + time[1];
 
-        // First run
-        if (!player.last_time_stamp) {
+            // First run
+            if (!player.last_time_stamp) {
+                player.last_time_stamp = time;
+                //continue;
+            }
+
+            let delta_time = (time - player.last_time_stamp) / 1000000000;
             player.last_time_stamp = time;
-            //continue;
+
+            // Update player position according to speed and delta time.
+            player.pos_x += speed * player.dir_x * delta_time;
+            player.pos_y += speed * player.dir_y * delta_time;
+
+            let pos_on_grid = getPlayerPositionOnGrid(player, {"x":player.pos_x, "y":player.pos_y});
+
+            let player_pos_on_grid_x = pos_on_grid.x;
+            let player_pos_on_grid_y = pos_on_grid.y;
+            let player_last_pos_on_grid_x = Math.floor(last_pos.x);
+            let player_last_pos_on_grid_y = Math.floor(last_pos.y);
+            //
+            // console.log("Player position x: ", player.pflooros_x);
+            // console.log("Player position y: ", player.pos_y);
+
+            // Skipped cells in x and in y
+            let x_delta = Math.abs(player.pos_x - last_pos.x);
+            let y_delta = Math.abs(player.pos_y - last_pos.y);
+
+
+            // Move on skipped cells in x and in y
+            MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name);
+            MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name);
+            // Change direction when reaching the end of a cell.
+            fixDir(player, last_pos, room_name);
+
+            checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player.ID, socket_ID);
+
+            if (dummyVariable == null) {
+                dummyVariable = "test";
+                setInterval(function() {
+                    if (GamePaused == true)
+                        return;
+                    let x = player.pos_x;
+                    let y = player.pos_y;
+                    let dir_y = player.dir_y;
+                    let dir_x = player.dir_x;
+
+                    // console.log("player pos_on_grid : ", player.pos_x);
+                    // console.log("Player position(pixel) x: ", x);
+                    // console.log("Player position y: ", y);
+                    // console.log("Player direction x: ", player.dir_x);
+                    // console.log("Player direction y: ", player.dir_y);
+                }, 500);
+            }
         }
-
-        let delta_time = (time - player.last_time_stamp) / 1000000000;
-        player.last_time_stamp = time;
-
-        // Update player position according to speed and delta time.
-        player.pos_x += speed * player.dir_x * delta_time;
-        player.pos_y += speed * player.dir_y * delta_time;
-
-        let pos_on_grid = getPlayerPositionOnGrid(player, {"x":player.pos_x, "y":player.pos_y});
-
-        let player_pos_on_grid_x = pos_on_grid.x;
-        let player_pos_on_grid_y = pos_on_grid.y;
-        let player_last_pos_on_grid_x = Math.floor(last_pos.x);
-        let player_last_pos_on_grid_y = Math.floor(last_pos.y);
-        //
-        // console.log("Player position x: ", player.pflooros_x);
-        // console.log("Player position y: ", player.pos_y);
-
-        // Skipped cells in x and in y
-        let x_delta = Math.abs(player.pos_x - last_pos.x);
-        let y_delta = Math.abs(player.pos_y - last_pos.y);
-
-
-        // Move on skipped cells in x and in y
-        MoveOnCells(x_delta, last_pos.x, last_pos, player.pos_x, player, indx, room_name);
-        MoveOnCells(y_delta, last_pos.y, last_pos, player.pos_y, player, indx, room_name);
-        // Change direction when reaching the end of a cell.
-        fixDir(player, last_pos, room_name);
-
-        checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player.ID, socket_ID);
-
-        if (dummyVariable == null) {
-            dummyVariable = "test";
-            setInterval(function() {
-                if (GamePaused == true)
-                    return;
-                let x = player.pos_x;
-                let y = player.pos_y;
-                let dir_y = player.dir_y;
-                let dir_x = player.dir_x;
-
-                // console.log("player pos_on_grid : ", player.pos_x);
-                // console.log("Player position(pixel) x: ", x);
-                // console.log("Player position y: ", y);
-                // console.log("Player direction x: ", player.dir_x);
-                // console.log("Player direction y: ", player.dir_y);
-            }, 500);
-        }
-    }
     }
 
 
@@ -792,6 +805,8 @@ function fixDir(player, last_pos, room_name) {
             head.y += player.next_dir_y * 0.5 - player.dir_y * 0.5;
 
 
+            // Set old direction.
+            player.last_dir = {"x":player.dir_x, "y": player.dir_y};
             //Set direction to new direction
             player.dir_x = player.next_dir_x;
             player.dir_y = player.next_dir_y;
