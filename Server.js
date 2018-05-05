@@ -10,6 +10,7 @@ var io = require('socket.io', { rememberTransport: false, transports: ['WebSocke
 
 server.listen(8080);
 
+var n_test_case = 0;
 // Send game page for client.
 app.use(express.static('public'));
 
@@ -313,7 +314,8 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
 
 
     let cell;
-
+    let xx;
+    let yy;
 
     while (delta > 0) {
         let head = {};
@@ -340,8 +342,8 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
         // Put tail in the back
         //TODO: I think this should be removed so that we wouldn't put a tail if the player died this may result in conflict
         let player_pos_on_grid = getPlayerPositionOnGrid(player, tailPos);
-        let xx = player_pos_on_grid.x;
-        let yy = player_pos_on_grid.y;
+        xx = player_pos_on_grid.x;
+        yy = player_pos_on_grid.y;
         if (rooms[room_name].grid[xx][yy][0] != player.ID + 2) {
             rooms[room_name].grid[xx][yy][0] = player.ID + 1;
         }
@@ -409,15 +411,25 @@ function MoveOnCells(delta, last_pos_x_or_y, last_pos, player_pos, player, indx,
         }
         delta--;
     }
+    return {"x":xx, "y":yy};
 }
 
 // Filling.
 function tryToFill(room_name, socket_ID, player_pos_on_grid_x, player_pos_on_grid_y) {
 
+    n_test_case +=1;
+    if(n_test_case>=3)
+    {
+        let sa  = 3;
+        console.log(sa);
+    }
+    else {
+        console.log("test cases , ",n_test_case);
+    }
     let player = rooms[room_name].players[socket_ID];
 
-    if (player.filled)
-        return;
+    // if (player.filled)
+    //     return;
 
     //TODO:create a grid for each room
     let visited = [];
@@ -430,13 +442,14 @@ function tryToFill(room_name, socket_ID, player_pos_on_grid_x, player_pos_on_gri
         }
     }
     rooms[room_name].players[socket_ID].filled = true;
-    let path = isConnectedPath(visited, room_name,player, player_pos_on_grid_x, player_pos_on_grid_y);
+    let path = isConnectedPath(visited, room_name, player, player_pos_on_grid_x, player_pos_on_grid_y);
 
     return path;
 
 }
 
 function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, player_pos_on_grid_y) {
+
 
     let delta_x = [0, 1, -1, 0];
     let delta_y = [1, 0, 0, -1];
@@ -496,7 +509,7 @@ function isConnectedPath(visited, room_name, player, player_pos_on_grid_x, playe
 
 // Check filling for every player.
 // Store start and end position.
-function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player_ID, socket_ID) {
+function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, player_ID, socket_ID, player_old_position) {
 
     let player = rooms[room_name].players[socket_ID];
     //
@@ -505,9 +518,9 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
     // console.log("dir.x : ",player.dir_x, "dir.y : ",player.dir_y);
     // console.log("grid of pos - dir : ",rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0]);
         // Check if player left his own area.
+
         if ((rooms[room_name].grid[player_pos_on_grid_x][player_pos_on_grid_y][0] !== player_ID + 2) &&
-            (rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0] ===
-                player_ID + 2) && !player.record_path ) {
+            (rooms[room_name].grid[player_pos_on_grid_x - player.dir_x][player_pos_on_grid_y - player.dir_y][0] === player_ID + 2)&& !player.record_path ) {
 
             console.log(" leaving his grid ");
             if(player.record_path)
@@ -556,6 +569,7 @@ function checkFilling(room_name, player_pos_on_grid_x, player_pos_on_grid_y, pla
 
             // Should try to fill player area.
             let path =tryToFill(room_name, socket_ID, player_pos_on_grid_x, player_pos_on_grid_y);
+            console.log(" bfs path : ", path);
             console.log("try to fill");
             rooms[room_name].players[socket_ID].record_path = false;
 
