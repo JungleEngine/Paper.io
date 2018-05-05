@@ -35,6 +35,7 @@ class Player {
         this.record_path = false;
         this.direction_already_fixed = false;
         this.dir = dir;
+        this.next_dir={"x":1,"y":0};
         this.last_dir = new Dir(dir.x, dir.y);
         this.position = position;
         this.grid_position = new Position(0, 0);
@@ -91,69 +92,9 @@ class Player {
     }
 
 
-    // Update key press from dir.
-    updateKeyPressFromDir() {
-
-
-        if (this.dir.equal(new Dir(1, 0))) {
-
-            this.KEY_PRESSED = 'right';
-
-        }
-
-        if (this.dir.equal(new Dir(-1, 0))) {
-
-            this.KEY_PRESSED = 'left';
-
-        }
-
-        if (this.dir.equal(new Dir(0, 1))) {
-
-            this.KEY_PRESSED = 'down';
-
-        }
-
-        if (this.dir.equal(new Dir(0, -1))) {
-
-            this.KEY_PRESSED = 'up';
-
-        }
-
-    }
 
     // Update key press from a given dir.
     updatePlayerKeyPressFromDir(dir_x, dir_y) {
-
-        let dir = new Dir(dir_x, dir_y);
-
-        if (dir.equal(new Dir(1, 0))) {
-
-            this.KEY_PRESSED = 'right';
-
-        }
-
-        if (dir.equal(new Dir(-1, 0))) {
-
-            this.KEY_PRESSED = 'left';
-
-        }
-
-        if (dir.equal(new Dir(0, 1))) {
-
-            this.KEY_PRESSED = 'down';
-
-        }
-
-        if (dir.equal(new Dir(0, -1))) {
-
-            this.KEY_PRESSED = 'up';
-
-        }
-
-    }
-
-    // Update key press from dir.
-    updateDirFromKeyPress() {
 
         if (this.wait_server_response)
             return;
@@ -161,36 +102,12 @@ class Player {
         if (this.next_dir == null) {
             this.next_dir = { "x": 1, "y": 0 };
         }
-        if (this.KEY_PRESSED == 'right') {
-
-            this.next_dir.x = 1;
-            this.next_dir.y = 0;
-
-        }
-
-        if (this.KEY_PRESSED == 'left') {
-
-            this.next_dir.x = -1;
-            this.next_dir.y = 0;
-
-        }
-
-        if (this.KEY_PRESSED == 'up') {
-
-            this.next_dir.x = 0;
-            this.next_dir.y = -1;
-
-        }
-
-        if (this.KEY_PRESSED == 'down') {
-
-            this.next_dir.x = 0;
-            this.next_dir.y = 1;
-
-        }
-
-
+        this.next_dir.x=dir_x;
+        this.next_dir.y=dir_y;
+        
     }
+
+
 
     // Check wether this player should fill or no.
     // pos_x, pos_y -> player position on grid.

@@ -110,7 +110,7 @@ function simulate() {
 
 
         let player = players[indx];
-        player.updateDirFromKeyPress();
+        // player.updateDirFromKeyPress();
         let last_pos = { "x": player.position.x, "y": player.position.y };
 
         let time = window.performance.now();
