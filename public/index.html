@@ -4,7 +4,6 @@
 
 <head>
     <script src="p5.min.js"></script>
-
     <title>p5.js Full Screen Demo</title>
     <style type="text/css">
     body {
@@ -23,6 +22,37 @@
     }
     /* remove blue outline around canvas */
 
+    button {
+        color: #0099CC;
+        background: transparent;
+        border: 2px solid #0099CC;
+        border-radius: 6px;
+        padding: 16px 32px;
+        text-align: center;
+        display: inline-block;
+        font-size: 16px;
+        margin: 50px 50px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    button:hover {
+        background-color: #008CBA;
+        color: white;
+    }
+
+    h1 {
+        font: bold italic 3em/1em "Times New Roman", "MS Serif", "New York", serif;
+        color: black;
+        margin: 0px 50px;
+    }
+
+    input {
+        margin: 0px 0px 0px 50px;
+    }
+
     .fs {
         position: fixed;
         bottom: 20px;
@@ -37,7 +67,7 @@
         display: none;
     }
     </style>
-    <button id="button1" name="but" style="width: 200; height: 200">Connect</button>
+    <button id="button1" name="but" style="width: 200; height: 200">CONNECT</button>
     <script src="modules/gameconfig.js" type="module"></script>
     <script src="socket.js"></script>
     <script src="modules/gameconfig.js"></script>
