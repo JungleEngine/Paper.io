@@ -1,5 +1,10 @@
 "use strict";
 
+
+// Database.
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database(':paperio:');
+
 // Express server.
 var express = require('express');
 var app = express();
@@ -30,28 +35,60 @@ const grid_length = 100;
 const grid_end = grid_start + grid_length;
 
 var GamePaused = false;
+
+ function checkCredentials(data, socket)
+{
+
+    let room_name = data.room_name;
+    db.serialize(function() {
+
+        db.get("SELECT rowid AS id, username, password FROM users " +
+            "where username = '"+data.username +"' and password = '" + data.password+"'", function(error, row) {
+            if (row !== undefined) {
+
+                console.log("valid player");
+                // Add player in room.
+                let player_parameters = addPlayer(room_name,data.username, socket.id);
+
+                // Join new room.
+                socket.join(room_name);
+
+                // Leave his own room.
+                socket.leave(socket.id);
+
+                // Send initial parameters to connected Client
+                socket.emit("initialize_game", player_parameters);
+            }
+            else {
+                socket.emit("wrong_credentials", {"message":" wrong username or password"});
+                return false;
+
+            }
+
+    });
+
+
+    });
+
+}
+
 io.on('connection', (socket) => {
 
-    socket.on('join_room', (room_name) => {
+    socket.on('join_room', (data) => {
+
 
         //console.log(io.nsps['/'].adapter.rooms[data]);
 
-        // Add player in room.
-        let player_parameters = addPlayer(room_name, socket.id);
+        // CheckCredentials., return if not authorized to login.
+       checkCredentials(data, socket);
 
-        // Join new room.
-        socket.join(room_name);
 
-        // Leave his own room.
-        socket.leave(socket.id);
-
-        // Send initial parameters to connected Client
-        socket.emit("initialize_game", player_parameters);
 
     });
 
     socket.onclose = function(reason) {
         //console.log(socket.id);
+        //console.log(reason);
         let rooms_keys = Object.keys(socket.rooms);
         //console.log("Player disconnected ", rooms_keys[rooms_keys.length - 1]);
         // console.log(rooms_keys);
@@ -267,12 +304,14 @@ function sendNewPlayerToRoom(room_name, player_data) {
  * Adds player in existing room or create new room and insert the player in it
  *
  * @param room_name
+ * @param username
  * @param socket_id
  */
-function addPlayer(room_name, socket_id) {
+function addPlayer(room_name,username, socket_id) {
 
     // Initial parameters to be sent to new player.
     let player_parameters = {};
+        player_parameters.username = username;
 
     // If room does not exist, create new room.
     if (!io.nsps['/'].adapter.rooms[room_name]) {
@@ -845,7 +884,7 @@ function removeDeadPlayer(room_name, player) {
     console.log("Player " + player + " died!");
 
     console.log(room_name);
-    console.log()
+    console.log();
     if(rooms[room_name]==null)
     {
         console.log("no room matches the room of the dead player");
@@ -873,7 +912,6 @@ function removeDeadPlayer(room_name, player) {
     }
 
     // Make this player slot in room available.
-    rooms[room_name].next_available_ID = Math.max(2, rooms[room_name].next_available_ID - 8);
 
     // Remove dead player from room
     // delete rooms[room_name].players[player];

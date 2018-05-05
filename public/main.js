@@ -65,21 +65,31 @@ function setup() {
             document.body.insertAdjacentHTML('beforeend', "<h1>ROOM NAME</h1>");
             document.body.insertAdjacentHTML('beforeend', "<input type='text' id='room_name' >");
 
+
+            document.body.insertAdjacentHTML('beforeend', "<h1>LOGIN</h1>");
+
+            document.body.insertAdjacentHTML('beforeend', "<input type='text' id='username' >");
+            document.body.insertAdjacentHTML('beforeend', "<input type='text' id='password' >");
+
             document.body.appendChild(btn);
 
             btn.onclick = function() {
                 // Remove own button
                 btn.parentNode.removeChild(btn);
 
+                let username =  document.getElementById('username').value;
+                let password =  document.getElementById('password').value;
+
                 let room_name = document.getElementById('room_name').value;
                 document.body.innerHTML = "";
 
 
-                socket.emit("join_room", room_name);
+                socket.emit("join_room", {"room_name": room_name, "username": username, "password":password});
 
                 // Wait for initial map.
                 socket.on("initialize_game", initGame);
 
+                socket.on("wrong_credentials",handleWrongCredentials);
                 // New player joined the room.
                 socket.on("new_player", newPlayerJoinedTheRoom);
                 initializeLocal();

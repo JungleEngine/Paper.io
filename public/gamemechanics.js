@@ -69,7 +69,7 @@ function simulate() {
                 // Dies
 
                     console.log("Player Died!!");
-                    removeDeadPlayer(player.ID);
+                    //removeDeadPlayer(player.ID);
                     return false;
 
             } else if (GameConfig.GRID[indexI][indexJ][0] === player.ID + 1) { // Own tail
@@ -286,6 +286,11 @@ function drawGrid() {
         fill(color(COLORS[players[i].ID]));
 
         rect(player_local_pixel_position_x * GameConfig.BLOCK_SIZE, player_local_pixel_position_y * GameConfig.BLOCK_SIZE, GameConfig.BLOCK_SIZE + 1, GameConfig.BLOCK_SIZE + 1); // +1 for filling gaps between cells
+
+        textSize(32);
+
+        text(players[i].username, player_local_pixel_position_x * GameConfig.BLOCK_SIZE,
+            player_local_pixel_position_y * GameConfig.BLOCK_SIZE);
 
     }
 }

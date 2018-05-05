@@ -17,6 +17,7 @@ function initGame(data) {
         //console.log(curr_player.player_color_index)
         player = new Player(new Dir(curr_player["dir_x"], curr_player["dir_y"]), new Position(GameConfig.BLOCK_SIZE * curr_player["pos_x"], GameConfig.BLOCK_SIZE * curr_player["pos_y"]), curr_player["ID"]);
 
+        player.username = data["username"];
         player.fix_position.x = 0;
         player.fix_position.y = 0;
 
@@ -124,7 +125,7 @@ function onPlayerChangeDir(data) {
         //     console.log("new player connected!");
         //   console.log(data);
         player = new Player(new Dir(data["player_dir"][0], data["player_dir"][1]), new Position(GameConfig.BLOCK_SIZE * data["player_pos"][0], GameConfig.BLOCK_SIZE * data["player_pos"][1]), data["player_ID"]);
-
+        player.username = data["username"];
         players[player.ID] = player;
 
     }
@@ -152,7 +153,7 @@ function newPlayerJoinedTheRoom(data) {
     player = new Player(new Dir(data["dir_x"], data["dir_y"]), new Position(GameConfig.BLOCK_SIZE * data["pos_x"], GameConfig.BLOCK_SIZE * data["pos_y"]), data["player_id"]);
 
     players[player.ID] = player;
-
+    players[player.ID].username = data["username"];
     //players[player.ID].updateKeyPressFromDir();
     players[player.ID].record_path = true;
 }
@@ -168,3 +169,13 @@ function onPlayerFillArea(data)
     //console.log(" path = :",data.record_path);
     GameConfig.FILL(path_vector, color_index);
 }
+
+function handleWrongCredentials(data)
+{
+
+    alert(data.message);
+
+
+}
+
+

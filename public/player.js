@@ -39,6 +39,7 @@ class Player {
         this.position = position;
         this.grid_position = new Position(0, 0);
         this.area = 0;
+        this.username = "";
         this.name = "samir";
         this.filled = false;
         this.ID = id;
