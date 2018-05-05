@@ -291,41 +291,6 @@ function drawGrid() {
 }
 
 
-function updateGrid() {
-
-    for (let i in players) {
-
-        let x = 0;
-        let y = 0;
-
-        let player_pos_on_grid = players[i].getPlayerPositionOnGrid(players[i].position);
-        x = player_pos_on_grid.x;
-        y = player_pos_on_grid.y;
-
-        // Check if grid color is my block color -> leave it.
-        // Tail color.
-        if (GameConfig.GRID[x][y][0] === players[i].ID + 2) {
-
-            // TODO:: change filling flag.
-
-        } else {
-            // if(players[i].on_his_area)
-            // {
-            //
-            //     players[i].on_his_area = false;
-            //     players[i].was_on_his_area = true;
-            //
-            // }
-
-
-            // GameConfig.GRID[x][y] = players[i].ID + 1;
-            // GameConfig.GRID[x][y][0] = players[i].ID + 1;
-
-
-        }
-    }
-}
-
 
 
 function fixDir(player, last_pos) {
@@ -353,14 +318,27 @@ function fixDir(player, last_pos) {
 
 
 
-    if ( ((player.fix_pos_x/GameConfig.BLOCK_SIZE - Math.round(head.x))*player.dir.x) < 0 ||  ((player.fix_pos_y/GameConfig.BLOCK_SIZE- Math.round(head.y))*player.dir.y) < 0) {
-        console.log("The rare case has happened");
-        return ;
-    }
+
     // If direction changed
     if (player.dir.x !== player.next_dir.x || player.dir.y !== player.next_dir.y) {
 
 
+        if(player.wait_server_response==false)
+        {
+            if ( ((player.fix_position.x/GameConfig.BLOCK_SIZE - Math.round(head.x))*player.dir.x) < 0 ||  ((player.fix_position.y/GameConfig.BLOCK_SIZE- Math.round(head.y))*player.dir.y) < 0) {
+                console.log("The rare case has happened");
+
+                let diff = Math.abs(player.position.x - player.fix_position.x)+Math.abs(player.position.y - player.fix_position.y);
+
+                player.position.x=player.fix_position.x+diff*player.next_dir.x;
+                player.position.y=player.fix_position.y+diff*player.next_dir.y;
+
+                player.dir.x = player.next_dir.x;
+                player.dir.y = player.next_dir.y;
+
+                return;
+            }
+        }
         // if (
 
         //     //Crossed Cell Right

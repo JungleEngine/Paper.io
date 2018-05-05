@@ -133,7 +133,6 @@ function draw() {
 
         simulate();
 
-        updateGrid();
 
         drawGrid();
 
