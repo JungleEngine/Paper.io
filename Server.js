@@ -32,7 +32,7 @@ const canvas_length = 200;
 const grid_start = 50;
 const grid_length = 100;
 const grid_end = grid_start + grid_length;
-
+var max_available_ID = 20;
 var GamePaused = false;
 
  function checkCredentials(data, socket)
@@ -252,7 +252,8 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     player_data.ID = rooms[room_name].next_available_ID;
     player_data.read_to_be_simulated = false;
     // Update next available ID in this room.
-    rooms[room_name].next_available_ID += 4;
+    if(!rooms[room_name].next_available_ID>=max_available_ID)
+        rooms[room_name].next_available_ID += 4;
 
     player_data.fix_pos_x = 0;
     player_data.fix_pos_y = 0;
@@ -336,7 +337,15 @@ function initNewRoom(room_name, socket_id) {
         async.forever(
             function(next) {
                 if (GamePaused == false)
-                    simulate();
+
+                    try{
+
+                    simulate();}
+                    catch(exception)
+                    {
+
+                    }
+
                 setTimeout(function() {
                     next();
                 }, 30)
@@ -959,8 +968,8 @@ function fixDir(player, last_pos, room_name) {
  * @param player socket.id
  */
 function removeDeadPlayer(room_name, player) {
-
-    if(player === undefined ||room_name ===undefined)
+    try {
+    if(player ==undefined ||room_name ===undefined)
         return;
 
     console.log("Player " + player + " died!");
@@ -1000,6 +1009,11 @@ function removeDeadPlayer(room_name, player) {
     rooms[room_name].players.splice(player,1);
     io.to(room_name).emit("player_died",{"player_ID":playerID});
     delete rooms[room_name].players[player];
+    }
+    catch(error)
+    {
+
+    }
 
 }
 

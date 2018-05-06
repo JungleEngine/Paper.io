@@ -202,7 +202,7 @@ function validateKeyPress() {
         keyboardLocked = true;
         setTimeout(function() {
             keyboardLocked = false;
-        }, 50);
+        }, 200);
         // Send updates to server (player direction, player position ).
         updates = {};
         updates["player_dir"] = [x, y];
