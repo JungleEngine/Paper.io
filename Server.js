@@ -976,12 +976,12 @@ function removeDeadPlayer(room_name, player) {
 
     console.log(room_name);
     console.log();
-    if(rooms[room_name]===null)
+    if(rooms[room_name]==null||rooms[room_name]==undefined)
     {
         console.log("no room matches the room of the dead player");
         return;
     }
-    if(rooms[room_name].players===null||rooms[room_name].players[player]===null)
+    if(rooms[room_name].players==null||rooms[room_name].players[player]==null)
     {
         console.log("no player with this socket id: ",player, " in this room: ", room_name);
         return;
