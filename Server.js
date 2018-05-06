@@ -32,7 +32,7 @@ const canvas_length = 200;
 const grid_start = 50;
 const grid_length = 100;
 const grid_end = grid_start + grid_length;
-var max_available_ID = 20;
+var max_available_ID = 30;
 var GamePaused = false;
 
  function checkCredentials(data, socket)
