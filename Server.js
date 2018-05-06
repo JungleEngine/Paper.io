@@ -942,6 +942,7 @@ function fixDir(player, last_pos, room_name) {
             if (player.new_key != null && player.new_key == true) {
                 player.new_key = false;
                 // console.log(" position ", player.pos_x, player.pos_y);
+
                 io.to(room_name).emit('player_change_direction', {
                     "player_ID": player.ID,
                     "player_dir": [player.next_dir_x, player.next_dir_y],
@@ -949,6 +950,7 @@ function fixDir(player, last_pos, room_name) {
                     // "grid": rooms[room_name].grid
 
                 });
+
             }
         }
     }
