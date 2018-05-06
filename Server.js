@@ -12,7 +12,7 @@ var server = require('http').Server(app);
 var async = require('async');
 var io = require('socket.io', { rememberTransport: false, transports: ['WebSocket'] })(server);
 
-server.listen(8080);
+server.listen(14445);
 
 var n_test_case = 0;
 // Send game page for client.
