@@ -252,7 +252,6 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     player_data.ID = rooms[room_name].next_available_ID;
     player_data.read_to_be_simulated = false;
     // Update next available ID in this room.
-    if(!rooms[room_name].next_available_ID>=max_available_ID)
         rooms[room_name].next_available_ID += 4;
 
     player_data.fix_pos_x = 0;
