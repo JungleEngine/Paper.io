@@ -198,8 +198,8 @@ function initializeLocal() {
 
 function keyReleased() {
     if (keyCode == 87) {
-        GameConfig.PAUSE = !GameConfig.PAUSE;
-        pauseServer();
+        //GameConfig.PAUSE = !GameConfig.PAUSE;
+        //pauseServer();
     }
     return false; // prevent any default behavior
 }
