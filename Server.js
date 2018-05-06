@@ -799,6 +799,8 @@ function simulate() {
 
             let player = map[indx];
 
+            if(player===undefined)
+                continue;
             if(!player.read_to_be_simulated)
                 continue;
 
@@ -958,16 +960,19 @@ function fixDir(player, last_pos, room_name) {
  */
 function removeDeadPlayer(room_name, player) {
 
+    if(player === undefined ||room_name ===undefined)
+        return;
+
     console.log("Player " + player + " died!");
 
     console.log(room_name);
     console.log();
-    if(rooms[room_name]==null)
+    if(rooms[room_name]===null)
     {
         console.log("no room matches the room of the dead player");
         return;
     }
-    if(rooms[room_name].players==null||rooms[room_name].players[player]==null)
+    if(rooms[room_name].players===null||rooms[room_name].players[player]===null)
     {
         console.log("no player with this socket id: ",player, " in this room: ", room_name);
         return;
@@ -991,9 +996,9 @@ function removeDeadPlayer(room_name, player) {
     // Make this player slot in room available.
 
     // Remove dead player from room
-    // delete rooms[room_name].players[player];
-    // rooms[room_name].players.splice(player,1);
-    io.to(room_name).emit("player_died",{"player_ID":playerID})
+    delete rooms[room_name].players[player];
+    rooms[room_name].players.splice(player,1);
+    io.to(room_name).emit("player_died",{"player_ID":playerID});
     delete rooms[room_name].players[player];
 
 }
@@ -1007,11 +1012,23 @@ function removeDeadPlayer(room_name, player) {
  * @returns player socket.id
  */
 function getSocketIDfromPlayerID(playerID, room_name) {
-    for (let [player, indx] of rooms[room_name].players.entries()) {
-        if (player.ID == playerID) {
+
+    let map = rooms[room_name].players;
+    for (let indx of Object.keys(map))
+    {
+
+        let player = map[indx];
+
+        if(player.ID === playerID)
             return indx;
-        }
     }
+
+    // for (let [player, indx] of rooms[room_name].players.entries()) {
+    //     // if (player.ID == playerID) {
+    //     //     return indx;
+    //     // }
+        console.log("player ->", player.ID);
+   // }
 }
 
 
