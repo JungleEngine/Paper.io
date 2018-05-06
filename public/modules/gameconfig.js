@@ -7,6 +7,7 @@ GameConfig = {
     BLOCK_SPEED:5,
     GRID_START : 50,
     GRID_END : 150,
+    SOCKET :null,
 
     UPDATE_SPEED : function(frame_rate)
     {

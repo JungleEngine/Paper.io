@@ -26,7 +26,6 @@ var COLORS = ['empty', '#edeff4'
 
 ];
 
-var socket;
 var currentTime = 0;
 var ValidAction = true;
 const canvas_length = 200;
@@ -45,22 +44,22 @@ var game_started = false;
 function setup() {
     //click button1 to connect
     document.getElementById("button1").onclick = function() {
-        socket = io();
+        GameConfig.SOCKET = io();
 
         //try to send an action and wait for connected response
 
-        socket.emit("client_action");
+        GameConfig.SOCKET.emit("client_action");
 
 
         //if connected is received from the server then create another button to join a room
-        socket.on('connect', function(data) {
+        GameConfig.SOCKET.on('connect', function(data) {
             var date = new Date();
             currentTime = date.getMilliseconds();
 
 
-            socket.on("player_key_press", onPlayerKeyPress);
-            socket.on("player_change_direction", onPlayerChangeDir);
-            socket.on("area_filling", onPlayerFillArea)
+            GameConfig.SOCKET.on("player_key_press", onPlayerKeyPress);
+            GameConfig.SOCKET.on("player_change_direction", onPlayerChangeDir);
+            GameConfig.SOCKET.on("area_filling", onPlayerFillArea)
 
             //delete the previous button
             document.getElementById("button1").parentNode.removeChild(document.getElementById("button1"));
@@ -96,15 +95,15 @@ function setup() {
                 document.body.innerHTML = "";
 
 
-                socket.emit("join_room", {"room_name": room_name, "username": username, "password":password});
+                GameConfig.SOCKET.emit("join_room", {"room_name": room_name, "username": username, "password":password});
 
                 // Wait for initial map.
-                socket.on("initialize_game", initGame);
+                GameConfig.SOCKET.on("initialize_game", initGame);
 
-                socket.on("wrong_credentials",handleWrongCredentials);
+                GameConfig.SOCKET.on("wrong_credentials",handleWrongCredentials);
                 // New player joined the room.
-                socket.on("new_player", newPlayerJoinedTheRoom);
-                socket.on("player_died", playerDied);
+                GameConfig.SOCKET.on("new_player", newPlayerJoinedTheRoom);
+                GameConfig.SOCKET.on("player_died", playerDied);
                 initializeLocal();
             }
         });

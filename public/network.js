@@ -32,9 +32,12 @@ function initGame(data) {
 
 
     }
-
+    console.log("asdasdasdasads");
     // Start the game.
     startGame = true;
+    console.log("asdsa");
+    GameConfig.SOCKET.emit("player_ready_to_be_simulated",{"username":player.username});
+
 
 }
 
@@ -66,7 +69,7 @@ function initGame(data){
 }*/
 
 function pauseServer() {
-    socket.emit("pause");
+    GameConfig.SOCKET.emit("pause");
 }
 
 // Emit updates to server.
@@ -74,7 +77,7 @@ function emitUpdatesToServer(updates) {
 
     //console.log(updates);
     // Emit client action to server to be validated.
-    socket.emit("validate", updates);
+    GameConfig.SOCKET.emit("validate", updates);
 
 }
 
@@ -140,23 +143,26 @@ function onPlayerChangeDir(data) {
 
 }
 
-function newPlayerJoinedTheRoom(data) {
+function newPlayerJoinedTheRoom(data)
+{
 
-    //console.log("new player added ");
-    // Check if player is this player then do nothing.
-    if (data["player_id"] === current_player_ID)
+    console.log("new palyer ",data);
+   //  console.log(" new player , ", data);
+   //  //console.log("new player added ");
+   //  // Check if player is this player then do nothing.
+    if (data["ID"] === current_player_ID)
         return;
+   //
+   //  //console.log("new player joined, ",data);
+   // // GameConfig.GRID = data["grid"];
+   //
+     player = new Player(new Dir(data["dir_x"], data["dir_y"]), new Position(GameConfig.BLOCK_SIZE * data["pos_x"], GameConfig.BLOCK_SIZE * data["pos_y"]), data["ID"]);
+   //
+     players[player.ID] = player;
+     players[player.ID].username = data["username"];
+   //  console.log(" username , ", players[player.ID].username);
+     players[player.ID].updateKeyPressFromDir();
 
-    //console.log("new player joined, ",data);
-    GameConfig.GRID = data["grid"];
-
-    player = new Player(new Dir(data["dir_x"], data["dir_y"]), new Position(GameConfig.BLOCK_SIZE * data["pos_x"], GameConfig.BLOCK_SIZE * data["pos_y"]), data["player_id"]);
-
-    players[player.ID] = player;
-    players[player.ID].username = data["username"];
-    console.log(" username , ", players[player.ID].username);
-    //players[player.ID].updateKeyPressFromDir();
-    players[player.ID].record_path = true;
 }
 
 function onPlayerFillArea(data)

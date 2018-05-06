@@ -1,6 +1,5 @@
 "use strict";
 
-
 // Database.
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('paperio');
@@ -59,6 +58,7 @@ var GamePaused = false;
                 // Send initial parameters to connected Client
                 socket.emit("initialize_game", player_parameters);
             }
+
             else {
                 socket.emit("wrong_credentials", {"message":" wrong username or password"});
                 return false;
@@ -73,6 +73,7 @@ var GamePaused = false;
 }
 
 io.on('connection', (socket) => {
+
 
     socket.on('join_room', (data) => {
 
@@ -105,6 +106,18 @@ io.on('connection', (socket) => {
         GamePaused = !GamePaused;
     });
 
+    socket.on('player_ready_to_be_simulated',(data)=>{
+        console.log("player ready to be simulated");
+
+        let rooms_keys = Object.keys(socket.rooms);
+        let room_name = rooms_keys[rooms_keys.length - 1];
+        let player = rooms[rooms_keys[rooms_keys.length - 1]].players[socket.id];
+        rooms[rooms_keys[rooms_keys.length - 1]].players[socket.id].read_to_be_simulated = true;
+        player.username = data.username;
+        sendNewPlayerToRoom(room_name, player);
+
+
+    });
     socket.on('validate', (dir) => {
 
         let new_dir_x = dir.player_dir[0];
@@ -237,7 +250,7 @@ function setInitialParametersForNewPlayer(room_name, socket_id) {
     player_data.next_dir_x = 1;
     player_data.next_dir_y = 0;
     player_data.ID = rooms[room_name].next_available_ID;
-
+    player_data.read_to_be_simulated = false;
     // Update next available ID in this room.
     rooms[room_name].next_available_ID += 4;
 
@@ -354,6 +367,7 @@ function updateCurrentRoom(room_name, socket_id) {
 }
 
 function sendNewPlayerToRoom(room_name, player_data) {
+    console.log(" new player ");
     io.to(room_name).emit('new_player', player_data);
 }
 
@@ -383,7 +397,6 @@ function addPlayer(room_name,username, socket_id) {
         player_parameters.player_id = player_data.ID;
         player_parameters.username = username;
         player_parameters.grid = rooms[room_name].grid;
-        sendNewPlayerToRoom(room_name, player_parameters);
     }
 
 
@@ -785,6 +798,10 @@ function simulate() {
         for (let indx of Object.keys(map)) {
 
             let player = map[indx];
+
+            if(!player.read_to_be_simulated)
+                continue;
+
             let last_pos = { "x": player.pos_x, "y": player.pos_y };
             let time = process.hrtime();
             let socket_ID = indx;
