@@ -9,6 +9,21 @@ GameConfig = {
     GRID_END : 150,
     SOCKET :null,
 
+    UPDATE_GRID_WITH_NEW_PLAYER(pos_x, pos_y, color)
+    {
+        for (let i = pos_x - 1; i <= pos_x + 1; i++)
+        {
+
+            for (let j = pos_y - 1; j <= pos_y + 1; j++)
+            {
+
+                this.GRID[i][j][0] = color;
+
+            }
+        }
+
+    },
+
     UPDATE_SPEED : function(frame_rate)
     {
         GameConfig.SPEED = GameConfig.BLOCK_SPEED * GameConfig.BLOCK_SIZE  /frame_rate ;

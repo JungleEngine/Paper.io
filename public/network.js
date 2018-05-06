@@ -32,10 +32,6 @@ function initGame(data) {
 
 
     }
-    console.log("asdasdasdasads");
-    // Start the game.
-    startGame = true;
-    console.log("asdsa");
     GameConfig.SOCKET.emit("player_ready_to_be_simulated",{"username":player.username});
 
 
@@ -151,7 +147,16 @@ function newPlayerJoinedTheRoom(data)
    //  //console.log("new player added ");
    //  // Check if player is this player then do nothing.
     if (data["ID"] === current_player_ID)
+    {
+
+        // Start the game when all clients have this position.
+        startGame = true;
+
         return;
+
+    }
+
+    GameConfig.UPDATE_GRID_WITH_NEW_PLAYER(data["pos_x"],data["pos_y"], data["ID"]+2);
    //
    //  //console.log("new player joined, ",data);
    // // GameConfig.GRID = data["grid"];
