@@ -145,7 +145,7 @@ function setup() {
             document.body.insertAdjacentHTML('beforeend', "<h1>LOGIN</h1>");
 
             document.body.insertAdjacentHTML('beforeend', "<input type='text' id='username' >");
-            document.body.insertAdjacentHTML('beforeend', "<input type='text' id='password' >");
+            document.body.insertAdjacentHTML('beforeend', "<input type='password' id='password' >");
 
             document.body.appendChild(btn);
 
